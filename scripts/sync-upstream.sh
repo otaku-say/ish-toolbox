@@ -37,6 +37,7 @@ arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) ech
 # （下载上游 arm64 资产 + readelf 判定，不需要真机执行）
 want_arch="${TARGET_ARCH:-$(arch_of)}"
 case "$want_arch" in arm64) A_RE='aarch64|arm64'; A_EM=b7 ;; amd64) A_RE='x86_64|amd64'; A_EM=3e ;; *) echo "✗ 不支持的架构"; exit 1 ;; esac
+case "$want_arch" in arm64) other_arch=amd64 ;; amd64) other_arch=arm64 ;; esac
 mkdir -p "$T/arm64" "$T/amd64"
 
 fail=0; ok=0
@@ -97,14 +98,15 @@ while IFS='|' read -r cmd repo desc flt; do
   em=$(od -An -tx1 -j18 -N1 "$B" 2>/dev/null | tr -d ' \n')
   [ "$em" = "$A_EM" ] || { echo "  ✗ $cmd 架构不符（e_machine=$em，期望 $A_EM）"; continue; }
 
-  cp "$B" "$T/$want_arch/$cmd" && chmod +x "$T/$want_arch/$cmd"
+  mkdir -p "$T/$cmd/$want_arch"
+  cp "$B" "$T/$cmd/$want_arch/$cmd" && chmod +x "$T/$cmd/$want_arch/$cmd"
 
   # ── UPX 压缩（能用就用；失败自动回退）────────────────────────
   # 注意：CI 的 runner 是 x86_64，arm64 产物**无法运行验证**，
   # 所以这里只做「UPX 后三判据仍成立」的检查（架构/静态性不被破坏）。
   local_note=""
   if [ "${UPX:-1}" = 1 ] && command -v upx >/dev/null 2>&1; then
-    _f="$T/$want_arch/$cmd"; _pre=$(wc -c < "$_f"); cp "$_f" "$_f.pre-upx"
+    _f="$T/$cmd/$want_arch/$cmd"; _pre=$(wc -c < "$_f"); cp "$_f" "$_f.pre-upx"
     if upx --best -q "$_f" 2>/dev/null; then
       _em2=$(od -An -tx1 -j18 -N1 "$_f" | tr -d ' \n')
       if [ "$_em2" = "$A_EM" ] && ! readelf -d "$_f" 2>/dev/null | grep -q NEEDED; then
@@ -119,7 +121,7 @@ while IFS='|' read -r cmd repo desc flt; do
   fi
 
   printf '  ✓ %-8s %-12s %6s MB %s\n' "$cmd" "$tag" \
-    "$(awk -v s=$(wc -c < "$T/$want_arch/$cmd") 'BEGIN{printf "%.1f", s/1048576}')" "$local_note"
+    "$(awk -v s=$(wc -c < "$T/$cmd/$want_arch/$cmd") 'BEGIN{printf "%.1f", s/1048576}')" "$local_note"
   # 必须用 tab 分隔——gen-table.sh 按 tab 读；写成竖线会让整行被当成第一列（踩过）
   printf '%s\t%s\t%s\t%s\n' "$cmd" "$repo" "$tag" "$desc" >> "$W/manifest.part"
   ok=$((ok+1))
@@ -138,21 +140,37 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add file magic.mgc socat jaq faketty"
+SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat jaq faketty"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
-for f in "$T/$want_arch"/*; do
-  [ -f "$f" ] || continue
-  _n=$(basename "$f")
-  case "$_n" in SHA256SUMS) continue ;; esac
-  if grep -qx "$_n" "$W/known"; then :; else
-    echo "  - 清理清单外的：$_n"; rm -f "$f"
+# 布局：tools/<tool>/<arch>/<tool>（每工具一枚目录，内含 arm64/amd64 子目录）。
+# 清理三件事：①顶层散文件（旧平铺布局残留）②已下架工具的目录 ③旧「按架构分组」的
+# tools/<arch>/ 目录（只由对应架构的 job 删除自己那只；内容已迁移到 <tool>/<arch>/）。
+for entry in "$T"/*; do
+  [ -e "$entry" ] || continue
+  _n=$(basename "$entry")
+  case "$_n" in
+    "SHA256SUMS.$want_arch"|"SHA256SUMS.$other_arch") continue ;;
+  esac
+  if [ ! -d "$entry" ]; then
+    echo "  - 清理散文件：$_n"; rm -f "$entry"; continue
+  fi
+  case "$_n" in
+    "$want_arch"|"$other_arch")
+      if [ "$_n" = "$want_arch" ]; then
+        echo "  - 移除旧布局目录：$_n/（已迁移到 <tool>/$want_arch/）"; rm -rf "$entry"
+      fi
+      continue ;;
+  esac
+  if grep -qx "$_n" "$W/known"; then
+    rm -f "$entry/$want_arch"/*.upx "$entry/$want_arch"/*.pre-upx 2>/dev/null
+  else
+    echo "  - 清理清单外的目录：$_n"; rm -rf "$entry"
   fi
 done
-rm -f "$T/$want_arch"/*.upx "$T/$want_arch"/*.pre-upx 2>/dev/null
-# 只重算本架构目录的基线（跨 job 不共享文件 → 不再触发 autostash 冲突）；
-# 并排除 SHA256SUMS 自身，避免自引用行让 sha256sum -c 永远报 FAILED
-( cd "$T/$want_arch" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS 2>/dev/null )
+# 只重算本架构的基线（每架构一个清单文件，跨 job 互不写同一文件）；
+# 路径含 <tool>/<arch>/ 相对 tools/ 根。
+( cd "$T" && find . -path "./*/$want_arch/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.$want_arch" )
 
 echo "完成：$want_arch 更新 $ok 个"
 [ "$ok" -eq 0 ] && exit 1
