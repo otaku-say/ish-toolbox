@@ -26,8 +26,8 @@ sd|chmln/sd|正则替换
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
-age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
-age-keygen|FiloSottile/age|age 密钥生成（age-format identity/keypair）
+rage|str4d/rage|现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
+rage-keygen|str4d/rage|rage 密钥生成（age-format identity/keypair）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -58,7 +58,7 @@ while IFS='|' read -r cmd repo desc flt; do
       | select(.name | test($re))
       | select(($flt == "") or (.name | test($flt)))
       | select(.name | test("linux|musl"; "i"))
-      | select(.name | test("\\.(tar\\.gz|tgz|tar\\.xz|zip)$"))
+      | select(.name | test("\\.(tar\\.gz|tgz|tar\\.xz|zip|deb)$"))
       | select(.name | test("openbsd|freebsd|windows|darwin|android|msvc|apple"; "i") | not)
       | select(.name | test("-dev|glibc"; "i") | not)   # 排除 dev 变体与 glibc 版（static-curl 有这些）
     ] | sort_by((if (.name|test("musl";"i")) then 0 else 1 end), .size)
@@ -83,6 +83,9 @@ while IFS='|' read -r cmd repo desc flt; do
     *.zip)    unzip -qo "$W/p" -d "$W/x" 2>/dev/null ;;
     *.tar.xz) tar xJf "$W/p" -C "$W/x" 2>/dev/null ;;
     *.tar.gz|*.tgz) tar xzf "$W/p" -C "$W/x" 2>/dev/null ;;
+    # .deb 支持：rage 的官方 musl 静态产物以 deb 分发（2026-10）；dpkg-deb 拆包，
+    # 无 dpkg-deb 时回退 ar + tar（data.tar 的压缩由 GNU tar 自动探测）
+    *.deb)    dpkg-deb -x "$W/p" "$W/x" 2>/dev/null || { (cd "$W/x" && ar x "$W/p" && tar xf data.tar.* 2>/dev/null); } ;;
     *)        cp "$W/p" "$W/x/$cmd" ;;
   esac
 
