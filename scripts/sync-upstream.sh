@@ -117,7 +117,7 @@ while IFS='|' read -r cmd repo desc; do
     else
       mv "$_f.pre-upx" "$_f"
     fi
-    rm -f "$_f.pre-upx"
+    rm -f "$_f.pre-upx" "$_f.upx"   # $_f.upx 是 UPX 中断时的残缺残留，必须清
   fi
 
   printf '  ✓ %-8s %-12s %6s MB %s\n' "$cmd" "$tag" \
@@ -130,6 +130,23 @@ done < "$W/list"
 if [ -s "$W/manifest.part" ]; then
   { printf 'tool\trepo\tversion\tdescription\n'; sort "$W/manifest.part"; } > "$ROOT/MANIFEST.tsv"
 fi
+
+# ── 孤儿清理：删掉「不在清单里」的旧工具与 UPX 残留 ────────────────
+# 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
+# UPX 被中断时也会留下 <file>.upx 残缺文件。
+# 自编译的工具不在本清单里，必须显式保留，否则会被误删。
+SELF_BUILT="fzy patch nnn b3sum jaq riff"
+printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
+for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
+for f in "$T/$want_arch"/*; do
+  [ -f "$f" ] || continue
+  _n=$(basename "$f")
+  case "$_n" in SHA256SUMS) continue ;; esac
+  if grep -qx "$_n" "$W/known"; then :; else
+    echo "  - 清理清单外的：$_n"; rm -f "$f"
+  fi
+done
+rm -f "$T/$want_arch"/*.upx "$T/$want_arch"/*.pre-upx 2>/dev/null
 for a in arm64 amd64; do
   ( cd "$T/$a" && sha256sum * > SHA256SUMS 2>/dev/null )
 done
