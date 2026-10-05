@@ -17,3 +17,4 @@ ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口�
 ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译）
 file	GNU file（自编译）	5.48	file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC）
 socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
+jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；f64 数值、无模块系统——兼容性分工见 SKILL.md）
