@@ -61,7 +61,7 @@ done
 for f in "$D"/*; do
   _n="$(basename "$f")"
   case "$_n" in
-    "SHA256SUMS.$A"|"SHA256SUMS.arm64"|"SHA256SUMS.amd64") continue ;;
+    "SHA256SUMS.$A"|"SHA256SUMS.arm64"|"SHA256SUMS.amd64"|DOCS.sha256) continue ;;
     "arm64"|"amd64")
       if [ "$_n" = "$A" ]; then
         echo "  ✗ 旧布局目录残留：$_n"; bad=$((bad+1))

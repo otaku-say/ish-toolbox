@@ -28,7 +28,6 @@ qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
 age-keygen|FiloSottile/age|age 密钥生成（age-format identity/keypair）
-doggo|mr-karan/doggo|DNS 查询（dig 现代替代，多协议）|^doggo-linux-
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -149,7 +148,7 @@ for entry in "$T"/*; do
   [ -e "$entry" ] || continue
   _n=$(basename "$entry")
   case "$_n" in
-    "SHA256SUMS.$want_arch"|"SHA256SUMS.$other_arch") continue ;;
+    "SHA256SUMS.$want_arch"|"SHA256SUMS.$other_arch"|DOCS.sha256) continue ;;   # 文档清单同属仓库元数据，不是旧布局残留
   esac
   if [ ! -d "$entry" ]; then
     echo "  - 清理散文件：$_n"; rm -f "$entry"; continue
