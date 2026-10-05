@@ -30,6 +30,7 @@ cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
 age-keygen|FiloSottile/age|age 密钥生成（age-format identity/keypair）
 mlr|johnkerl/miller|CSV/TSV/JSON 数据切片（Miller）
+doggo|mr-karan/doggo|DNS 查询（dig 现代替代，多协议）|^doggo-linux-
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -138,7 +139,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge stdbuf libstdbuf.so ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add"
+SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge stdbuf libstdbuf.so ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add file magic.mgc socat"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do
