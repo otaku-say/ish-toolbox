@@ -28,7 +28,6 @@ qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
 age-keygen|FiloSottile/age|age 密钥生成（age-format identity/keypair）
-mlr|johnkerl/miller|CSV/TSV/JSON 数据切片（Miller）
 doggo|mr-karan/doggo|DNS 查询（dig 现代替代，多协议）|^doggo-linux-
 '
 
