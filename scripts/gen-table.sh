@@ -34,7 +34,7 @@ mb() { [ -f "$1" ] && awk -v s="$(wc -c < "$1")" 'BEGIN{printf "%.1f MB", s/1048
       mark="⬆ 待同步"
     fi
     printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' \
-      "$cmd" "${desc:-—}" "$up" "$ver" "$(mb "$ROOT/tools/arm64/$cmd")" "$(mb "$ROOT/tools/amd64/$cmd")" "$mark"
+      "$cmd" "${desc:-—}" "$up" "$ver" "$(mb "$ROOT/tools/$cmd/arm64/$cmd")" "$(mb "$ROOT/tools/$cmd/amd64/$cmd")" "$mark"
   done
 } > "$TMP"
 
@@ -43,8 +43,8 @@ mb() { [ -f "$1" ] && awk -v s="$(wc -c < "$1")" 'BEGIN{printf "%.1f MB", s/1048
   echo
   printf '共 %s 个工具 · arm64 合计 %s · amd64 合计 %s\n' \
     "$(tail -n +2 "$ROOT/MANIFEST.tsv" | wc -l)" \
-    "$(ls -l "$ROOT/tools/arm64" 2>/dev/null | awk '!/SHA256/{t+=$5} END{printf "%.1f MB", t/1048576}')" \
-    "$(ls -l "$ROOT/tools/amd64" 2>/dev/null | awk '!/SHA256/{t+=$5} END{printf "%.1f MB", t/1048576}')"
+    "$(find "$ROOT/tools" -path '*/arm64/*' -type f -printf '%s\n' 2>/dev/null | awk '{t+=$1} END{printf "%.1f MB", t/1048576}')" \
+    "$(find "$ROOT/tools" -path '*/amd64/*' -type f -printf '%s\n' 2>/dev/null | awk '{t+=$1} END{printf "%.1f MB", t/1048576}')"
 } >> "$TMP"
 
 if grep -q 'TABLE:START' "$ROOT/README.md" 2>/dev/null; then
