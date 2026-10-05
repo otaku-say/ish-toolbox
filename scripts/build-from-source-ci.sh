@@ -27,7 +27,7 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-TOOLS="fzy patch nnn b3sum jaq ncdu"
+TOOLS="fzy patch nnn b3sum jaq ncdu riff"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"

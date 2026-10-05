@@ -36,7 +36,14 @@ if [ "$ARCH" = arm64 ] && [ ! -x /tmp/zigcc ]; then
   chmod +x /tmp/zigcc
 fi
 
-# ── 三判据验证后落地 ────────────────────────────────────────────
+# ── 三判据验证后落地（含可选的 UPX 压缩）────────────────────────
+# UPX 默认开启（UPX=0 可关闭）。实测 UPX 的自解压 stub **不引入 PT_INTERP**，
+# 压缩后三判据（无 INTERP / 无 NEEDED / 架构正确）依然成立，
+# 且压缩后真机可运行。先 strip 再 UPX，并用运行测试兜底：
+#   UPX 后跑不起来就自动回退到未压缩版本（安全第一）。
+: "${UPX:=1}"
+run_ok() { "$1" --version >/dev/null 2>&1 || "$1" --help >/dev/null 2>&1; }
+
 install_verified() {  # <路径> <命令名>
   local b="$1" n="$2"
   [ -f "$b" ] || { echo "  ✗ $n 产物不存在"; return 1; }
@@ -45,8 +52,19 @@ install_verified() {  # <路径> <命令名>
   local em; em=$(od -An -tx1 -j18 -N1 "$b" | tr -d ' \n')
   [ "$em" = "$EM" ] || { echo "  ✗ $n 架构不符($em≠$EM)"; return 1; }
   strip --strip-all "$b" 2>/dev/null || true
+  local pre; pre=$(wc -c < "$b")
+  local note=""
+  if [ "$UPX" = 1 ] && command -v upx >/dev/null 2>&1; then
+    cp "$b" "$b.pre-upx"
+    if upx --best -q "$b" 2>/dev/null && run_ok "$b"; then
+      note=" +UPX $(awk -v a="$pre" -v c="$(wc -c < "$b")" 'BEGIN{printf "%d%%", c*100/a}')"
+    else
+      mv "$b.pre-upx" "$b"; note=" (UPX 跳过)"
+    fi
+    rm -f "$b.pre-upx"
+  fi
   cp "$b" "$OUT/$n" && chmod +x "$OUT/$n"
-  printf '  ✓ %-8s %6.2f MB\n' "$n" "$(awk -v s="$(wc -c < "$OUT/$n")" 'BEGIN{print s/1048576}')"
+  printf '  ✓ %-8s %6.2f MB%s\n' "$n" "$(awk -v s="$(wc -c < "$OUT/$n")" 'BEGIN{print s/1048576}')" "$note"
 }
 
 # GitHub 源码 tarball（依次试 main / master）

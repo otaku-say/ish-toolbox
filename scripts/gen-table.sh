@@ -18,16 +18,16 @@ TMP=$(mktemp); trap 'rm -f "$TMP"' EXIT INT TERM
 mb() { [ -f "$1" ] && awk -v s="$(wc -c < "$1")" 'BEGIN{printf "%.1f MB", s/1048576}' || echo "—"; }
 
 {
-  echo "| 工具 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |"
-  echo "|---|---|---|---|---|---|"
+  echo "| 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |"
+  echo "|---|---|---|---|---|---|---|"
   # 跳过表头行，逐工具处理
   tail -n +2 "$ROOT/MANIFEST.tsv" | while IFS="$(printf '\t')" read -r cmd repo ver desc; do
     [ -z "${cmd:-}" ] && continue
     up=$(curl -fsSL --max-time 20 ${AUTH:+-H "$AUTH"} \
          "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null | jq -r '.tag_name // "?"' 2>/dev/null)
     if [ "$up" = "$ver" ]; then mark="✅ 最新"; else mark="⬆ 待同步"; fi
-    printf '| `%s` | %s | %s | %s | %s | %s |\n' \
-      "$cmd" "$up" "$ver" "$(mb "$ROOT/tools/arm64/$cmd")" "$(mb "$ROOT/tools/amd64/$cmd")" "$mark"
+    printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' \
+      "$cmd" "${desc:-—}" "$up" "$ver" "$(mb "$ROOT/tools/arm64/$cmd")" "$(mb "$ROOT/tools/amd64/$cmd")" "$mark"
   done
 } > "$TMP"
 

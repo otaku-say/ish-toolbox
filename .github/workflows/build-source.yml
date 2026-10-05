@@ -56,6 +56,17 @@ jobs:
         with:
           version: 0.13.0
 
+      - name: 装 UPX（可选压缩，URL 直取避免 apt 包名差异）
+        run: |
+          if curl -fsSL -o /tmp/upx.txz https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-amd64_linux.tar.xz; then
+            tar xJf /tmp/upx.txz -C /tmp
+            sudo cp /tmp/upx-4.2.4-amd64_linux/upx /usr/local/bin/
+            upx --version | head -1
+          else
+            echo "UPX 下载失败，本次跳过压缩"
+            echo "UPX=0" >> "$GITHUB_ENV"
+          fi
+
       - name: 编译并验证
         env:
           ARCH: ${{ matrix.arch }}

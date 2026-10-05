@@ -11,5 +11,5 @@ ouch	ouch-org/ouch	0.8.3	统一解压
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
 riff	walles/riff	3.6.2	diff 着色
 sd	chmln/sd	v1.1.0	正则替换
-xh	ducaale/xh	v0.26.2	HTTP 客户端
 zoxide	ajeetdsouza/zoxide	v0.10.0	目录智能跳转
+curl	stunnel/static-curl	8.22.0	HTTP 客户端（静态构建，含 TLS/HTTP2/3/压缩）
