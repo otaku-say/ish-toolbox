@@ -85,6 +85,23 @@ fetch() {  # <owner/repo> <dir>
 
 echo "═══ $ARCH (target=$T cc=$CROSS_CC) ═══"
 
+# ── 前置：为 musl 编译 ncurses（nnn 与 ncdu 都要）───────────────
+# 必须独立于 apt：musl-gcc / Zig 都不搜 /usr/include（那是 glibc 的头）。
+# 放在工具之前，因为 nnn 编译时就要用。
+if [ ! -f /tmp/nc-prefix/lib/libncursesw.a ]; then
+  echo "→ 为 musl 编译 ncurses（$ARCH，约 2-4 分钟）"
+  curl -fsSL --max-time 300 "https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar.gz" -o /tmp/nc.tgz \
+    && mkdir -p /tmp/ncb && tar xzf /tmp/nc.tgz -C /tmp/ncb \
+    && ( cd /tmp/ncb/ncurses-6.4 \
+         && ./configure --host="$T" CC="$CROSS_CC" \
+              --prefix=/tmp/nc-prefix --without-shared --without-debug --without-ada \
+              --enable-widec --without-manpages --without-tests >/tmp/ncc 2>&1 \
+         && make -j"$(nproc)" >/tmp/ncm 2>&1 && make install >/dev/null 2>&1 ) \
+    && echo "  ✓ ncurses(musl) 就绪" \
+    || echo "  ! ncurses 编译失败: $(tail -2 /tmp/ncc 2>/dev/null | head -1)"
+fi
+NCINC="-I/tmp/nc-prefix/include"; NCLIB="-L/tmp/nc-prefix/lib"
+
 # ── fzy：单文件 C（v1 报 "compilation terminated"是目录不存在导致）──
 if fetch jhawthorn/fzy fzy; then
   ls /tmp/build/fzy/fzy.c >/dev/null 2>&1 || echo "  ! fzy.c 不在预期位置: $(ls /tmp/build/fzy | head -3)"
@@ -92,11 +109,11 @@ if fetch jhawthorn/fzy fzy; then
     zig cc -target aarch64-linux-musl -O3 -static -o /tmp/build/fzy.bin /tmp/build/fzy/fzy.c 2>/tmp/e1
   else
     musl-gcc -O3 -static -o /tmp/build/fzy.bin /tmp/build/fzy/fzy.c 2>/tmp/e1
-  fi && install_verified /tmp/build/fzy.bin fzy || echo "  ✗ fzy: $(tail -2 /tmp/e1 | head -1)"
+  fi && install_verified /tmp/build/fzy.bin fzy || echo "  ✗ fzy: $(head -3 /tmp/e1 2>/dev/null | tr '\n' ' ')"
 fi
 
-# ── patch：autotools ─────────────────────────────────────────
-if fetch patchutils/patch patch; then
+# ── patch：autotools（patchutils/patch 的 tarball 是 404，换 GNU 官方镜像）
+if fetch gnu-mirror-unofficial/patch patch; then
   ( cd /tmp/build/patch && autoreconf -fi >/tmp/ar 2>&1
     CC="$CROSS_CC" ./configure --host="$T" --disable-dependency-tracking --disable-docs >/tmp/c2 2>&1 \
     && make -j"$(nproc)" >/tmp/m2 2>&1 && cp src/patch /tmp/build/patch.bin ) \
@@ -104,12 +121,14 @@ if fetch patchutils/patch patch; then
     || echo "  ✗ patch: $(grep -iE 'error|not found' /tmp/m2 /tmp/c2 2>/dev/null | head -1)"
 fi
 
-# ── nnn：Makefile 直编；musl 无 fts.h → O_NOFTS；curses 头来自 apt ──
+# ── nnn：Makefile 直编；musl 无 fts.h → O_NOFTS；ncurses 用前置编好的 musl 版 ──
 if fetch jarun/nnn nnn; then
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
-    make nnn CC="$CROSS_CC" O_NOFTS=1 >/tmp/m3 2>&1 && cp nnn /tmp/build/nnn.bin ) \
+    make nnn CC="$CROSS_CC" O_NOFTS=1 \
+         CPPFLAGS="$NCINC" LDLIBS="$NCLIB -lncursesw" >/tmp/m3 2>&1 \
+    && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
-    || echo "  ✗ nnn: $(grep -iE 'error|fatal' /tmp/m3 2>/dev/null | head -1)"
+    || echo "  ✗ nnn: $(grep -iE 'error|fatal|not found' /tmp/m3 2>/dev/null | head -1)"
 fi
 
 # ── b3sum：独立 crate（根目录是 blake3 包，不是 workspace）────────
@@ -129,24 +148,11 @@ if fetch 01mf02/jaq jaq; then
     || echo "  ✗ jaq: $(grep -iE '^error' /tmp/m5 2>/dev/null | head -1)"
 fi
 
-# ── ncdu：ncurses —— amd64 用 apt 的头；arm64 先交叉编 ncurses ────
+# ── ncdu：用前置编好的 musl ncurses ──────────────────────────────
 if fetch rofl0r/ncdu ncdu; then
-  NCF=""; NCL=""
-  if [ "$ARCH" = arm64 ]; then
-    if [ ! -f /tmp/nc-prefix/lib/libncursesw.a ]; then
-      curl -fsSL --max-time 300 "https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar.gz" -o /tmp/nc.tgz \
-        && mkdir -p /tmp/ncb && tar xzf /tmp/nc.tgz -C /tmp/ncb \
-        && ( cd /tmp/ncb/ncurses-6.4 \
-             && ./configure --host=aarch64-linux-musl CC="$CROSS_CC" \
-                  --prefix=/tmp/nc-prefix --without-shared --without-debug --without-ada \
-                  --enable-widec --without-manpages --without-tests >/tmp/ncc 2>&1 \
-             && make -j"$(nproc)" >/tmp/ncm 2>&1 && make install >/dev/null 2>&1 ) \
-        || echo "  ! ncurses 交叉编译失败: $(tail -1 /tmp/ncc 2>/dev/null)"
-    fi
-    NCF="-I/tmp/nc-prefix/include"; NCL="-L/tmp/nc-prefix/lib"
-  fi
   ( cd /tmp/build/ncdu && autoreconf -fi >/dev/null 2>&1
-    CC="$CROSS_CC" ./configure --host="$T" CPPFLAGS="$NCF" LDFLAGS="$NCL" \
+    CC="$CROSS_CC" ./configure --host="$T" \
+      CPPFLAGS="-I/tmp/nc-prefix/include" LDFLAGS="-L/tmp/nc-prefix/lib" \
       --disable-dependency-tracking >/tmp/c6 2>&1 \
     && make -j"$(nproc)" >/tmp/m6 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \
