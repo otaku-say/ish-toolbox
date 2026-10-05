@@ -6,7 +6,9 @@
  * 然后 exec 目标命令。
  * 说明：静态目标程序无动态加载器、无法被注入；动态 musl 程序（busybox 等）可用。
  */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +35,7 @@ int main(int argc, char **argv) {
         char *a = argv[i], *m = NULL;
         const char *var = NULL;
 
-        if (a[0] == '-' && a[1] && strchr("ioe", a[1]) && (a[1] == 'i' || a[1] == 'o' || a[1] == 'e')) {
+        if (a[0] == '-' && a[1] && strchr("ioe", a[1])) {
             var = (a[1] == 'i') ? "_STDBUF_I" : (a[1] == 'o' ? "_STDBUF_O" : "_STDBUF_E");
             if (a[2]) m = a + 2;                      /* -oL */
             else if (i + 1 < argc) m = argv[++i];     /* -o L */
