@@ -88,19 +88,22 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # 两个架构的 job 同时结束时 push 会撞车 → 先 rebase，失败重试
+          # 两个 job 同时结束会撞车：先本地 commit；push 失败则 fetch+rebase 重试。
+          # rebase 冲突时生成物以本地产物为准（--theirs），杜绝冲突标记入库。
+          git add -A
+          if git diff --cached --quiet; then echo "无变更"; exit 0; fi
+          git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
           for i in 1 2 3 4 5; do
-            if ! git pull --rebase --autostash origin main >/dev/null 2>&1; then
-              echo "✗ pull --rebase 冲突，放弃本次提交"; exit 1
-            fi
-            if grep -RIlq --exclude-dir=.git '^<<<<<<< ' . 2>/dev/null; then
-              echo "✗ 工作树存在冲突标记，放弃提交"; exit 1
-            fi
-            git add -A
-            if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-            git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
             if git push; then echo "push 成功（第 $i 次）"; exit 0; fi
-            echo "push 被拒，重试 $i/5…"; sleep $((i * 3))
+            echo "push 被拒，重试 $i/5…"
+            git fetch origin main
+            if ! git rebase origin/main >/dev/null 2>&1; then
+              echo "rebase 冲突：生成物以本地产物为准"
+              for f in $(git diff --name-only --diff-filter=U); do git checkout --theirs -- "$f" 2>/dev/null || true; done
+              git add -A
+              GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { echo "✗ rebase 无法收敛"; git rebase --abort 2>/dev/null || true; exit 1; }
+            fi
+            sleep $((i * 3))
           done
           echo "push 多次失败"; exit 1
 
