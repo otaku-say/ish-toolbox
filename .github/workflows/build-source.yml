@@ -7,7 +7,11 @@ on:
   workflow_dispatch:              # 手动触发
   push:
     paths:
-      - 'scripts/build-from-source-ci.sh'   # 编译脚本改动时自动跑
+      # 任何构建相关脚本改动都要重跑 —— 曾经只写了一个文件，
+      # 结果改 scripts/build/*.sh（每工具独立脚本）时 CI 根本不触发
+      - 'scripts/build-from-source-ci.sh'
+      - 'scripts/build/**'
+      - '.github/workflows/build-source.yml'
   schedule:
     - cron: '37 3 * * 1'          # 每周一 UTC 03:37 跟一次（拿上游新提交）
 
