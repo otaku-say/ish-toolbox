@@ -7,7 +7,7 @@
 ## 特点
 
 - **单文件零依赖**：静态链接，拷到任何目录都能跑，不依赖 glibc/musl 的 `.so`
-- **双架构**：`tools/arm64/`（iSH 用）+ `tools/amd64/`（沙箱 / 桌面 Linux 用）
+- **双架构 · 一工具一目录**：每个命令在 `tools/<tool>/<arch>/<tool>`（工具目录内含 `arm64/` 与 `amd64/`）；架构清单 `tools/SHA256SUMS.arm64` / `tools/SHA256SUMS.amd64`
 - **自动跟随上游**：CI 每天从各上游的 latest Release 抓取、校验、覆盖
 - **校验严格**：入库前过三重判定，任何一项不过就不入库（见下）
 
