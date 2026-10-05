@@ -25,7 +25,8 @@ mb() { [ -f "$1" ] && awk -v s="$(wc -c < "$1")" 'BEGIN{printf "%.1f MB", s/1048
     [ -z "${cmd:-}" ] && continue
     up=$(curl -fsSL --max-time 20 ${AUTH:+-H "$AUTH"} \
          "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null | jq -r '.tag_name // "?"' 2>/dev/null)
-    if [ "$up" = "$ver" ]; then mark="✅ 最新"; else mark="⬆ 待同步"; fi
+    if [ "$ver" = "default" ]; then mark="✅ 源码构建"
+    elif [ "$up" = "$ver" ]; then mark="✅ 最新"; else mark="⬆ 待同步"; fi
     printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' \
       "$cmd" "${desc:-—}" "$up" "$ver" "$(mb "$ROOT/tools/arm64/$cmd")" "$(mb "$ROOT/tools/amd64/$cmd")" "$mark"
   done

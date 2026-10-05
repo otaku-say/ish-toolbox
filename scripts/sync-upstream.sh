@@ -36,6 +36,8 @@ bottom|ClementTsang/bottom|终端 TUI 监控
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
 step|smallstep/cli|现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
 binsider|orhun/binsider|ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
+gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
+qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -49,7 +51,9 @@ fail=0; ok=0
 
 # 用文件重定向而非管道喂 while：管道会在子 shell 里执行，计数变量传不回来
 printf '%s\n' "$LIST" > "$W/list"
-while IFS='|' read -r cmd repo desc; do
+# 清单第 4 列（可选）= 资产名过滤正则：解决「同一 release 里多个相似资产」的歧义
+# （例：quickjs-ng 同时发 qjs-linux-aarch64 和 qjsc-linux-aarch64，按体积排序会选错）
+while IFS='|' read -r cmd repo desc flt; do
   [ -z "${cmd:-}" ] && continue
   curl -fsSL --max-time 30 ${AUTH:+-H "$AUTH"} -o "$W/m.json" \
     "https://api.github.com/repos/$repo/releases/latest" 2>/dev/null || {
@@ -58,9 +62,10 @@ while IFS='|' read -r cmd repo desc; do
   [ -z "$tag" ] && { echo "  ✗ $cmd 无 latest"; continue; }
 
   # 选资产：linux + 目标架构 + 归档格式，排除其它操作系统
-  url=$(jq -r --arg re "$A_RE" '
+  url=$(jq -r --arg re "$A_RE" --arg flt "$flt" '
     [ .assets[]?
       | select(.name | test($re))
+      | select(($flt == "") or (.name | test($flt)))
       | select(.name | test("linux|musl"; "i"))
       | select(.name | test("\\.(tar\\.gz|tgz|tar\\.xz|zip)$"))
       | select(.name | test("openbsd|freebsd|windows|darwin|android|msvc|apple"; "i") | not)
@@ -71,8 +76,9 @@ while IFS='|' read -r cmd repo desc; do
   if [ -z "$url" ]; then   # 裸二进制资产（如 riff、su-exec）
     # 注意：不要求名字含 "linux" —— su-exec 的资产就叫 su-exec-static-v0.3-arm64，
     # 只按「排除其它平台」来判定，否则永远匹配不到
-    url=$(jq -r --arg re "$A_RE" '
+    url=$(jq -r --arg re "$A_RE" --arg flt "$flt" '
       [ .assets[]? | select(.name|test($re))
+        | select(($flt == "") or (.name|test($flt)))
         | select(.name|test("openbsd|freebsd|windows|darwin|android|msvc|apple|ppc64|s390x|riscv|armv7";"i")|not)
         | select(.name|test("\\.(tar\\.gz|tgz|zip|tar\\.xz)$")|not)
         | select(.name|test("checksums|sha256";"i")|not) ]
@@ -128,14 +134,19 @@ while IFS='|' read -r cmd repo desc; do
 done < "$W/list"
 
 if [ -s "$W/manifest.part" ]; then
-  { printf 'tool\trepo\tversion\tdescription\n'; sort "$W/manifest.part"; } > "$ROOT/MANIFEST.tsv"
+  # 合并两个来源：sync 清单（本脚本自动写）+ MANIFEST.extra.tsv（自编译工具，手工维护）
+  {
+    cat "$W/manifest.part"
+    if [ -f "$ROOT/MANIFEST.extra.tsv" ]; then tail -n +2 "$ROOT/MANIFEST.extra.tsv"; fi
+  } | sort > "$W/manifest.all"
+  { printf 'tool\trepo\tversion\tdescription\n'; cat "$W/manifest.all"; } > "$ROOT/MANIFEST.tsv"
 fi
 
 # ── 孤儿清理：删掉「不在清单里」的旧工具与 UPX 残留 ────────────────
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="fzy patch nnn b3sum jaq riff"
+SELF_BUILT="fzy patch nnn b3sum jaq riff htmlq micropython"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do

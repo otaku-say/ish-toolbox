@@ -40,6 +40,7 @@ echo
 printf '  %-9s %-6s %-6s %s\n' 命令 静态 架构 大小
 bad=0
 for f in "$D"/*; do
+  case "$(basename "$f")" in SHA256SUMS) continue ;; esac
   [ -f "$f" ] || continue
   n="$(basename "$f")"; [ "$n" = "SHA256SUMS" ] && continue
 

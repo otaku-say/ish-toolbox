@@ -1,0 +1,9 @@
+tool	repo	version	description
+b3sum	BLAKE3-team/BLAKE3	default	BLAKE3 哈希（自编译，上游无 arm64 musl 产物）
+fzy	jhawthorn/fzy	default	模糊查找（自编译，上游无 arm64 产物）
+htmlq	mgdm/htmlq	default	HTML CSS 选择器提取（自编译，上游只发 x86_64）
+jaq	01mf02/jaq	default	Rust 版 jq（自编译，musl 版需自编）
+micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
+nnn	jarun/nnn	default	终端文件管理器（自编译，含 musl ncurses）
+patch	gnu-mirror-unofficial/patch	default	打补丁（自编译）
+riff	walles/riff	default	diff 高亮渲染（自编译）

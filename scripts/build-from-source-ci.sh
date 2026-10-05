@@ -28,7 +28,8 @@ esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
 # ncdu 已移除（交叉编译 ncurses 成本过高，用同样在库里的 dust 替代）
-TOOLS="fzy patch nnn b3sum jaq riff"
+# htmlq / micropython：上游不发 arm64 产物，走源码编译
+TOOLS="fzy patch nnn b3sum jaq riff htmlq micropython"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"

@@ -40,6 +40,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y musl-tools autoconf automake libtool pkg-config libncurses-dev
 
+      - name: 交叉工具链（micropython 的 arm64 用 glibc 静态链接）
+        # Zig 的 glibc target 不带完整 libc.a；Debian 交叉链自带，最稳
+        if: matrix.arch == 'arm64'
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu
+
       - name: Rust 工具链
         run: |
           curl -sSf https://sh.rustup.rs -o /tmp/ru.sh
