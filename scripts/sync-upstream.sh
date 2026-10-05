@@ -23,7 +23,6 @@ LIST='
 rg|BurntSushi/ripgrep|高速递归搜索
 fd|sharkdp/fd|按模式找文件
 sd|chmln/sd|正则替换
-curl|stunnel/static-curl|HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩）
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
 gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
@@ -136,7 +135,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch micropython tree sqlite3"
+SELF_BUILT="patch micropython tree sqlite3 curl"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do
