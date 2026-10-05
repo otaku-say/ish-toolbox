@@ -25,11 +25,14 @@ if [ ! -d "$D" ]; then
 fi
 
 # 1) 宿主原生 file（供 magic.mgc 编译；与目标同版本，格式必兼容）
+# 踩坑点：magic.h 是 BUILT_SOURCES（由 magic.h.in 生成、tarball 无此文件），
+# 定向构建（make -C src file）不会自动生成它 → 必须先显式 make magic.h
 HOSTD="/tmp/build/$V-host"
 if [ ! -x "$HOSTD/src/file" ]; then
   rm -rf "$HOSTD"; cp -R "$D" "$HOSTD"
   ( cd "$HOSTD" \
     && ./configure --disable-zlib --disable-bzlib --disable-lzlib --disable-lrziplib >/tmp/f-host.log 2>&1 \
+    && make -j"$(nproc)" -C src magic.h >>/tmp/f-host.log 2>&1 \
     && make -j"$(nproc)" -C src file >>/tmp/f-host.log 2>&1 ) \
     || { echo "  ✗ 宿主 file 构建失败: $(tail -2 /tmp/f-host.log | tr '\n' ' ' | cut -c1-110)"; exit 0; }
 fi
@@ -40,6 +43,7 @@ HOSTFILE="$HOSTD/src/file"
   && CC="$CROSS_CC" CFLAGS="$CSIZE" ./configure --host="$T" \
        --disable-zlib --disable-bzlib --disable-lzlib --disable-lrziplib \
        --disable-shared --enable-static --disable-dependency-tracking >/tmp/f-cross.log 2>&1 \
+  && make -j"$(nproc)" -C src magic.h >>/tmp/f-cross.log 2>&1 \
   && make -j"$(nproc)" -C src file LDFLAGS="-no-pie -all-static" >>/tmp/f-cross.log 2>&1 \
   && make -j"$(nproc)" -C magic magic.mgc FILE_COMPILE="$HOSTFILE" >>/tmp/f-cross.log 2>&1 ) \
   || { echo "  ✗ file 构建失败: $(grep -iE 'error' /tmp/f-cross.log 2>/dev/null | head -1 | cut -c1-110)"; exit 0; }
