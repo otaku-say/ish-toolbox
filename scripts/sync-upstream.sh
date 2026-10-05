@@ -26,6 +26,7 @@ sd|chmln/sd|正则替换
 curl|stunnel/static-curl|HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩）
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
 gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
+qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 '
 
