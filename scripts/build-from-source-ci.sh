@@ -113,10 +113,16 @@ if [ ! -f /tmp/nc-prefix/lib/libncursesw.a ]; then
 fi
 NCINC="-I/tmp/nc-prefix/include -I/tmp/nc-prefix/include/ncursesw"; NCLIB="-L/tmp/nc-prefix/lib"
 
+# ── 体积优化（用户要求：arm 版要最小体积）─────────────────────────
+# C 侧：-Os（size 优先）+ 函数/数据分节 + 链接期 gc-sections 剔除未引用段
+# Rust 侧：CARGO_PROFILE_RELEASE_* 已设 opt-level=z / lto / strip（见上）
+CSIZE="-Os -ffunction-sections -fdata-sections"
+CLINK="-static -Wl,--gc-sections"
+
 # ── fzy：主程序在 src/ 下（6 个 .c），用它的 Makefile 编 ──────────
 if fetch jhawthorn/fzy fzy; then
   if [ "$ARCH" = arm64 ]; then ZCC="zig cc -target aarch64-linux-musl"; else ZCC="musl-gcc"; fi
-  ( cd /tmp/build/fzy && make CC="$ZCC" CFLAGS="-O3 -static" LDFLAGS="-static" >/tmp/e1 2>&1 \
+  ( cd /tmp/build/fzy && make CC="$ZCC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" >/tmp/e1 2>&1 \
     && cp fzy /tmp/build/fzy.bin ) \
     && install_verified /tmp/build/fzy.bin fzy \
     || echo "  ✗ fzy: $(head -3 /tmp/e1 2>/dev/null | tr '\n' ' ')"
@@ -124,7 +130,7 @@ fi
 
 # ── patch：用 GNU 官方 release tarball（自带 configure）───────────
 if fetch_url "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.gz" patch-2.8 patch; then
-  ( cd /tmp/build/patch && CC="$CROSS_CC" ./configure --host="$T" \
+  ( cd /tmp/build/patch && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
       --disable-dependency-tracking >/tmp/c2 2>&1 \
     && make -j"$(nproc)" >/tmp/m2 2>&1 && cp src/patch /tmp/build/patch.bin ) \
     && install_verified /tmp/build/patch.bin patch \
@@ -144,8 +150,9 @@ if fetch jarun/nnn nnn; then
   fi
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
     make nnn CC="$CROSS_CC" O_NORL=1 O_STATIC=1 \
+         CFLAGS="$CSIZE" \
          CPPFLAGS="$NCINC -I/tmp/fts-prefix/include" \
-         LDLIBS="$NCLIB -L/tmp/fts-prefix/lib -lncursesw -lfts" >/tmp/m3 2>&1 \
+         LDLIBS="$NCLIB -L/tmp/fts-prefix/lib -lncursesw -lfts -Wl,--gc-sections" >/tmp/m3 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
     || echo "  ✗ nnn: $(grep -iE 'error|fatal|not found' /tmp/m3 2>/dev/null | head -1)"
@@ -175,8 +182,8 @@ fi
 
 # ── ncdu：官方 release tarball（自带 configure）─────────────────
 if fetch_url "https://dev.yorhel.nl/download/ncdu-2.7.tar.gz" ncdu-2.7 ncdu; then
-  ( cd /tmp/build/ncdu && CC="$CROSS_CC" ./configure --host="$T" \
-      CPPFLAGS="$NCINC" LDFLAGS="$NCLIB" --disable-dependency-tracking >/tmp/c6 2>&1 \
+  ( cd /tmp/build/ncdu && CC="$CROSS_CC" CFLAGS="$CSIZE" ./configure --host="$T" \
+      CPPFLAGS="$NCINC" LDFLAGS="$NCLIB -Wl,--gc-sections" --disable-dependency-tracking >/tmp/c6 2>&1 \
     && make -j"$(nproc)" >/tmp/m6 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \
     || echo "  ✗ ncdu: $(grep -iE 'error|not found' /tmp/m6 /tmp/c6 2>/dev/null | head -1)"
