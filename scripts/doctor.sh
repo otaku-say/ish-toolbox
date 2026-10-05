@@ -56,11 +56,16 @@ for d in "$D"/*/"$A"/; do
     "$(awk -v s=$(wc -c < "$b") 'BEGIN{printf "%.1fMB", s/1048576}')" \
     "$([ "$af" -gt 0 ] && printf '（%s 个附属文件）' "$af")"
 done
-# 顶层散文件 / 旧「按架构分组」目录 = 旧布局残留
+# 旧布局残留检查：顶层只允许「工具目录」与两个清单文件；
+# arm64/amd64 目录、任何散文件 = 旧布局残留
 for f in "$D"/*; do
   _n="$(basename "$f")"
-  case "$_n" in "SHA256SUMS.$A"|"SHA256SUMS.arm64"|"SHA256SUMS.amd64") continue ;; esac
-  echo "  ✗ 旧布局残留：$_n"; bad=$((bad+1))
+  case "$_n" in
+    "SHA256SUMS.$A"|"SHA256SUMS.arm64"|"SHA256SUMS.amd64") continue ;;
+    "arm64"|"amd64") echo "  ✗ 旧布局目录残留：$_n"; bad=$((bad+1)); continue ;;
+  esac
+  [ -d "$f" ] && continue
+  echo "  ✗ 旧布局散文件残留：$_n"; bad=$((bad+1))
 done
 
 echo
