@@ -81,14 +81,16 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # 让产物带上可执行位（runner 上 chmod 有效，直接记录 mode）
-          git add -A
-          if git diff --cached --quiet; then
-            echo "无变更（产物与仓库一致）"
-          else
-            git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)"
-            git push
-          fi
+          # 两个架构的 job 同时结束时 push 会撞车 → 先 rebase，失败重试
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main >/dev/null 2>&1 || true
+            git add -A
+            if git diff --cached --quiet; then echo "无变更"; exit 0; fi
+            git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+            if git push; then echo "push 成功（第 $i 次）"; exit 0; fi
+            echo "push 被拒，重试 $i/5…"; sleep $((i * 3))
+          done
+          echo "push 多次失败"; exit 1
 
       - name: 上传产物（便于人工检查）
         uses: actions/upload-artifact@v4

@@ -53,13 +53,19 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if git diff --quiet; then
-            echo "无变更（上游没发新版）"
-          else
+          # arm64 / amd64 两个 job 会**同时**结束并 push，直接 push 必然撞车
+          # （failed to push some refs）。所以：先 rebase，push 失败则重试。
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main >/dev/null 2>&1 || true
             git add -A
-            git commit -m "chore: 跟随上游更新二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)"
-            git push
-          fi
+            if git diff --cached --quiet; then
+              echo "无变更"; exit 0
+            fi
+            git commit -m "build: 跟随上游更新二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+            if git push; then echo "push 成功（第 $i 次尝试）"; exit 0; fi
+            echo "push 被拒，重试 $i/5…"; sleep $((i * 3))
+          done
+          echo "push 多次失败"; exit 1
 
       # 上游发布后若判定失败，在这里能看到原因
       - name: 摘要
