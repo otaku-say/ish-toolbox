@@ -1,0 +1,97 @@
+diff -ruN a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml	2026-10-05 19:40:27.343633000 +0000
++++ b/Cargo.toml	2026-10-05 19:40:27.383633000 +0000
+@@ -52,6 +52,7 @@
+     "fs",
+     "process",
+     "term",
++    "poll",
+ ]
+ default-features = false
+ 
+diff -ruN a/src/main.rs b/src/main.rs
+--- a/src/main.rs	2026-10-05 19:40:27.339633000 +0000
++++ b/src/main.rs	2026-10-05 19:40:27.383633000 +0000
+@@ -42,14 +42,14 @@
+     let new_stderr = STDERR.try_clone_to_owned()?;
+     let pty1 = unsafe { crate::forkpty() }?;
+     if let ForkptyResult::Parent { child, master } = pty1 {
+-        crate::copyfd(master.as_fd(), STDOUT);
+-        crate::copyexit(child);
++        let exit_code = crate::copyfd(master.as_fd(), STDOUT, child);
++        crate::copyexit(child, exit_code);
+     }
+     let new_stdout = STDOUT.try_clone_to_owned()?;
+     let pty2 = unsafe { crate::forkpty() }?;
+     if let ForkptyResult::Parent { child, master } = pty2 {
+-        crate::copyfd(master.as_fd(), new_stderr.as_fd());
+-        crate::copyexit(child);
++        let exit_code = crate::copyfd(master.as_fd(), new_stderr.as_fd(), child);
++        crate::copyexit(child, exit_code);
+     }
+     unistd::dup2_stdin(new_stdin)?;
+     unistd::dup2_stdout(new_stdout)?;
+@@ -120,14 +120,46 @@
+     unreachable!();
+ }
+ 
+-fn copyfd(read: BorrowedFd, write: BorrowedFd) {
++fn copyfd(read: BorrowedFd, write: BorrowedFd, child: Pid) -> Option<i32> {
++    use nix::errno::Errno;
++    use nix::poll::{poll, PollFd, PollFlags};
++    use nix::sys::wait::WaitPidFlag;
++
+     const BUF: usize = 4096;
+     let mut buf = [0; BUF];
++    let mut exit_code: Option<i32> = None;
++    let mut idle_rounds: u32 = 0;
+     loop {
+-        match unistd::read(read, &mut buf) {
+-            Ok(0) | Err(_) => return,
+-            Ok(n) => {
+-                let _ = write_all(write, &buf[..n]);
++        let mut fds = [PollFd::new(read, PollFlags::POLLIN)];
++        let ready = match poll(&mut fds, 100u16) {
++            Ok(n) => n,
++            Err(Errno::EINTR) => continue,
++            Err(_) => return exit_code,
++        };
++        if ready > 0 {
++            let revents = fds[0].revents().unwrap_or(PollFlags::empty());
++            if revents.intersects(PollFlags::POLLIN | PollFlags::POLLHUP | PollFlags::POLLERR) {
++                match unistd::read(read, &mut buf) {
++                    Ok(0) | Err(_) => return exit_code,
++                    Ok(n) => {
++                        let _ = write_all(write, &buf[..n]);
++                        idle_rounds = 0;
++                    }
++                }
++            }
++        } else {
++            idle_rounds += 1;
++            // Child is gone and the pty has been idle for 200ms: drained.
++            if exit_code.is_some() && idle_rounds >= 2 {
++                return exit_code;
++            }
++        }
++        if exit_code.is_none() {
++            match wait::waitpid(child, Some(WaitPidFlag::WNOHANG)) {
++                Ok(WaitStatus::StillAlive) => {}
++                Ok(WaitStatus::Exited(_, code)) => exit_code = Some(code),
++                Ok(_) => exit_code = Some(0),
++                Err(_) => exit_code = Some(0),
+             }
+         }
+     }
+@@ -141,7 +173,10 @@
+     Ok(())
+ }
+ 
+-fn copyexit(child: Pid) -> ! {
++fn copyexit(child: Pid, exit_code: Option<i32>) -> ! {
++    if let Some(code) = exit_code {
++        process::exit(code);
++    }
+     let flag = None;
+     process::exit(match wait::waitpid(child, flag) {
+         Ok(WaitStatus::Exited(_pid, code)) => code,
