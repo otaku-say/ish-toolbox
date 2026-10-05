@@ -1,0 +1,141 @@
+diff -ruN a/src/tini.c b/src/tini.c
+--- a/src/tini.c	2020-04-19 17:33:22.000000000 +0000
++++ b/src/tini.c	2026-10-05 21:05:28.170584000 +0000
+@@ -13,6 +13,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
++#include <libgen.h> /* musl(zig) 头未在 string.h 暴露 basename 声明，补上 */
+ #include <stdbool.h>
+ 
+ #include "tiniConfig.h"
+@@ -113,6 +114,14 @@
+ 
+ static struct timespec ts = { .tv_sec = 1, .tv_nsec = 0 };
+ 
++/* iSH 适配：iSH 的 sigtimedwait 不投递 pending 信号 → 改用 handler 置标志 +
++ * 主循环周期轮询（2026-10, otaku-say/ish-toolbox 补丁）。 */
++static volatile sig_atomic_t tini_pending_signal = 0;
++
++static void tini_signal_handler(int signum) {
++	tini_pending_signal = signum;
++}
++
+ static const char reaper_warning[] = "Tini is not running as PID 1 "
+ #if HAS_SUBREAPER
+        "and isn't registered as a child subreaper"
+@@ -417,11 +426,13 @@
+ 	if (subreaper > 0) {
+ 		if (prctl(PR_SET_CHILD_SUBREAPER, 1)) {
+ 			if (errno == EINVAL) {
+-				PRINT_FATAL("PR_SET_CHILD_SUBREAPER is unavailable on this platform. Are you using Linux >= 3.4?")
++				/* iSH 适配：平台无此 prctl —— 原实现 FATAL 拒绝启动，改为警告并继续
++				 * （与"非 PID1 且未注册 subreaper"的既有告警语义一致）。 */
++				PRINT_WARNING("PR_SET_CHILD_SUBREAPER is unavailable on this platform; continuing without subreaper. Are you using Linux >= 3.4?");
+ 			} else {
+-				PRINT_FATAL("Failed to register as child subreaper: %s", strerror(errno))
++				PRINT_FATAL("Failed to register as child subreaper: %s", strerror(errno));
++				return 1;
+ 			}
+-			return 1;
+ 		} else {
+ 			PRINT_TRACE("Registered as child subreaper");
+ 		}
+@@ -470,11 +481,32 @@
+ 		}
+ 	}
+ 
+-	if (sigprocmask(SIG_SETMASK, parent_sigset_ptr, sigconf_ptr->sigmask_ptr)) {
+-		PRINT_FATAL("sigprocmask failed: '%s'", strerror(errno));
++	/* 原实现：为 tini 阻塞整组信号，由 sigtimedwait 收取后转发。
++	 * iSH 适配：其 sigtimedwait 不投递 pending 信号，改为不阻塞 + 逐信号装
++	 * handler（置标志），主循环轮询后转发；此处仅查询保存掩码供子进程恢复。 */
++	if (sigprocmask(SIG_SETMASK, NULL, sigconf_ptr->sigmask_ptr)) {
++		PRINT_FATAL("sigprocmask(query) failed: '%s'", strerror(errno));
+ 		return 1;
+ 	}
+ 
++	struct sigaction tini_action;
++	memset(&tini_action, 0, sizeof tini_action);
++	tini_action.sa_handler = tini_signal_handler;
++	sigemptyset(&tini_action.sa_mask);
++	int signo;
++	for (signo = 1; signo <= 64; signo++) {
++		if (signo == SIGKILL || signo == SIGSTOP) {
++			continue;
++		}
++		if (sigismember(parent_sigset_ptr, signo) == 1) {
++			if (sigaction(signo, &tini_action, NULL)) {
++				/* 个别平台不支持高编号实时信号（如 iSH 到 63 为止）——跳过即可 */
++				PRINT_DEBUG("Skipping signal %i (sigaction failed)", signo);
++				continue;
++			}
++		}
++	}
++
+ 	// Handle SIGTTIN and SIGTTOU separately. Since Tini makes the child process group
+ 	// the foreground process group, there's a chance Tini can end up not controlling the tty.
+ 	// If TOSTOP is set on the tty, this could block Tini on writing debug messages. We don't
+@@ -499,39 +531,30 @@
+ }
+ 
+ int wait_and_forward_signal(sigset_t const* const parent_sigset_ptr, pid_t const child_pid) {
+-	siginfo_t sig;
+-
+-	if (sigtimedwait(parent_sigset_ptr, &sig, &ts) == -1) {
+-		switch (errno) {
+-			case EAGAIN:
+-				break;
+-			case EINTR:
+-				break;
+-			default:
+-				PRINT_FATAL("Unexpected error in sigtimedwait: '%s'", strerror(errno));
+-				return 1;
+-		}
+-	} else {
+-		/* There is a signal to handle here */
+-		switch (sig.si_signo) {
+-			case SIGCHLD:
+-				/* Special-cased, as we don't forward SIGCHLD. Instead, we'll
+-				 * fallthrough to reaping processes.
+-				 */
+-				PRINT_DEBUG("Received SIGCHLD");
+-				break;
+-			default:
+-				PRINT_DEBUG("Passing signal: '%s'", strsignal(sig.si_signo));
+-				/* Forward anything else */
+-				if (kill(kill_process_group ? -child_pid : child_pid, sig.si_signo)) {
+-					if (errno == ESRCH) {
+-						PRINT_WARNING("Child was dead when forwarding signal");
+-					} else {
+-						PRINT_FATAL("Unexpected error when forwarding signal: '%s'", strerror(errno));
+-						return 1;
+-					}
++	(void)parent_sigset_ptr;
++	/* iSH 适配：睡 100ms（handler 会以 EINTR 提前打断），醒来检查标志并转发 */
++	struct timespec tick = { .tv_sec = 0, .tv_nsec = 100 * 1000 * 1000 };
++	nanosleep(&tick, NULL);
++
++	int signo = (int)tini_pending_signal;
++	if (signo != 0) {
++		tini_pending_signal = 0;
++		if (signo == SIGCHLD) {
++			/* Special-cased, as we don't forward SIGCHLD. Instead, we'll
++			 * fallthrough to reaping processes.
++			 */
++			PRINT_DEBUG("Received SIGCHLD");
++		} else {
++			PRINT_DEBUG("Passing signal: '%s'", strsignal(signo));
++			/* Forward anything else */
++			if (kill(kill_process_group ? -child_pid : child_pid, signo)) {
++				if (errno == ESRCH) {
++					PRINT_WARNING("Child was dead when forwarding signal");
++				} else {
++					PRINT_FATAL("Unexpected error when forwarding signal: '%s'", strerror(errno));
++					return 1;
+ 				}
+-				break;
++			}
+ 		}
+ 	}
+ 
