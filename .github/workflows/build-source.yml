@@ -85,7 +85,7 @@ jobs:
           bash scripts/build-from-source-ci.sh
           echo "### ${{ matrix.arch }} 构建结果" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          ls -l "tools/${{ matrix.arch }}" | awk 'NR>1{printf "%-10s %8.2f MB\n", $9, $5/1048576}' >> "$GITHUB_STEP_SUMMARY"
+          du -sh "tools/${{ matrix.arch }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: 提交变更
@@ -115,5 +115,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: static-${{ matrix.arch }}
-          path: tools/${{ matrix.arch }}/
+          path: tools/*/${{ matrix.arch }}/
           retention-days: 14
