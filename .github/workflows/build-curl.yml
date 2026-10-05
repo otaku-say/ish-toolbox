@@ -1,0 +1,115 @@
+name: 构建 curl（LibreSSL 静态）
+
+# 为什么要自建：上游静态 curl（stunnel/static-curl）用 OpenSSL ≥3.5，
+# 其 TLS1.3 ClientHello 携带后量子签名算法，被 example.com / github.com /
+# cloudflare.com 等服务器拒绝握手（2026-10 实测）。本流水线改用 LibreSSL
+# 后端在 Alpine 环境自建：产物原生无问题（不依赖任何运行时修复文件），
+# 并内嵌 CA 证书包（--with-ca-embed）。
+# 配方：scripts/build/curl.sh（Alpine chroot，同架构原生执行，9 项验收内置）
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build/curl.sh'
+      - '.github/workflows/build-curl.yml'
+  schedule:
+    - cron: '52 3 * * *'        # 每日跟进（与 sync / build-source 错开）
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-curl-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建 curl ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+            em: 3e
+            upx: amd64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            em: b7
+            upx: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 基础依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl tar xz-utils file binutils
+
+      - name: 装 UPX（可选压缩）
+        run: |
+          if curl -fsSL -o /tmp/upx.txz "https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-${{ matrix.upx }}_linux.tar.xz"; then
+            tar xJf /tmp/upx.txz -C /tmp
+            sudo cp /tmp/upx-4.2.4-${{ matrix.upx }}_linux/upx /usr/local/bin/
+            upx --version | head -1
+          else
+            echo "UPX 下载失败，本次跳过压缩"
+          fi
+
+      - name: 构建（Alpine chroot + LibreSSL + curl，含 9 项验收）
+        run: sudo bash scripts/build/curl.sh
+
+      - name: UPX 压缩 + 三判据 + 冒烟
+        run: |
+          set -eu
+          BIN=/tmp/curl.static
+          if command -v upx >/dev/null 2>&1; then
+            cp "$BIN" "$BIN.pre"
+            if upx --best -q "$BIN" && "$BIN" --version >/dev/null 2>&1; then
+              echo "UPX ok: $(wc -c < "$BIN") bytes"
+            else
+              mv "$BIN.pre" "$BIN"; echo "UPX 失败或跑不通 → 回退未压缩"
+            fi
+            rm -f "$BIN.pre"
+          fi
+          if readelf -l "$BIN" | grep -q INTERP; then echo "✗ 有 PT_INTERP"; exit 1; fi
+          if readelf -d "$BIN" | grep -q NEEDED; then echo "✗ 有 NEEDED"; exit 1; fi
+          em=$(od -An -tx1 -j18 -N1 "$BIN" | tr -d ' \n')
+          [ "$em" = "${{ matrix.em }}" ] || { echo "✗ 架构 $em ≠ ${{ matrix.em }}"; exit 1; }
+          "$BIN" -sS -o /dev/null -w '冒烟 example.com = %{http_code}\n' https://example.com/
+
+      - name: 落地到仓库
+        run: |
+          set -eu
+          D="tools/${{ matrix.arch }}"
+          sudo cp /tmp/curl.static "$D/curl"
+          sudo chmod 755 "$D/curl"
+          sudo chown "$(id -u):$(id -g)" "$D/curl"
+          ( cd "$D" && sha256sum * > SHA256SUMS )
+          ls -l "$D/curl"
+
+      - name: 提交变更
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main >/dev/null 2>&1 || true
+            git add -A
+            if git diff --cached --quiet; then echo "无变更"; exit 0; fi
+            git commit -m "build: curl (LibreSSL 静态) [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+            if git push; then echo "push 成功（第 $i 次）"; exit 0; fi
+            echo "push 被拒，重试 $i/5…"; sleep $((i * 3))
+          done
+          echo "push 多次失败"; exit 1
+
+      - name: 上传产物与证据
+        uses: actions/upload-artifact@v4
+        with:
+          name: curl-${{ matrix.arch }}
+          path: |
+            tools/${{ matrix.arch }}/curl
+            /tmp/evidence.txt
+          retention-days: 14
