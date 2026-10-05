@@ -151,9 +151,11 @@ if fetch jarun/nnn nnn; then
     fi
   fi
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
-    make nnn CC="$CROSS_CC" O_NORL=1 O_STATIC=1 \
+    # 注意：命令行传 CPPFLAGS 会**覆盖** Makefile 里的 `CPPFLAGS += -DNORL`
+    # （make 的命令行变量优先级最高，+= 对它是追加不上的），所以 -DNORL 必须自己带上
+    make nnn CC="$CROSS_CC" O_NORL=1 \
          CFLAGS="$CSIZE" \
-         CPPFLAGS="$NCINC -I/tmp/fts-prefix/include" \
+         CPPFLAGS="-DNORL $NCINC -I/tmp/fts-prefix/include" \
          LDLIBS="$NCLIB -L/tmp/fts-prefix/lib -lncursesw -lfts -Wl,--gc-sections" >/tmp/m3 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
