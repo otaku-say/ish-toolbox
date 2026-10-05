@@ -3,7 +3,9 @@ age	FiloSottile/age	v1.3.2	现代文件加密（X25519/SSH 密钥；age + age-ke
 age-keygen	FiloSottile/age	v1.3.2	age 密钥生成（age-format identity/keypair）
 cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道）
 curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
+doggo	mr-karan/doggo	v1.4.0	DNS 查询（dig 现代替代，多协议）
 fd	sharkdp/fd	v10.5.0	按模式找文件
+file	GNU file（自编译）	5.48	file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC）
 gojq	itchyny/gojq	v0.12.19	Go 版 jq（JSON 处理，jq 语法兼容）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 mlr	johnkerl/miller	v6.22.0	CSV/TSV/JSON 数据切片（Miller）
@@ -11,10 +13,18 @@ openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/�
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
+scp	openssh/openssh-portable	10.5p1	SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议）
 sd	chmln/sd	v1.1.0	正则替换
+sftp	openssh/openssh-portable	10.5p1	交互式 SFTP 文件传输（自编译）
+socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
 sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
-stdbuf	coreutils（自编译）	9.12	调整子进程缓冲策略（配套 libstdbuf.so 同目录，行为如 GNU stdbuf）
+ssh	openssh/openssh-portable	10.5p1	SSH 客户端（全静态；LibreSSL 后端，自编译）
+ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译）
+ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口令，自编译）
+ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
+ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
+stdbuf	ish-toolbox 自实现（GNU 语义兼容）	1.0	LD_PRELOAD 调整子进程缓冲（-i/-o/-e；配套 libstdbuf.so 同目录）
 su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
