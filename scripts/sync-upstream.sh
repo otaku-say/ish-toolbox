@@ -24,7 +24,6 @@ rg|BurntSushi/ripgrep|高速递归搜索
 fd|sharkdp/fd|按模式找文件
 sd|chmln/sd|正则替换
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
-gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
