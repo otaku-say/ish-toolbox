@@ -1,52 +1,55 @@
-# faketty —— 给命令套一个伪终端（PTY）
+# faketty —— 把命令的 stdout 挂进伪终端（PTY）
 
-faketty 1.0.20。让"只认终端"的程序（颜色、行缓冲、`[ -t 1 ]` 判断）以为自己在 TTY 里跑。iSH 上 `stdbuf` 对 stdout 无效，需要终端语义时用它。
+让"只认终端"的程序以为自己在 TTY 里跑：颜色自动开、走上行缓冲、`[ -t 1 ]` 为真。
+iSH 上 `stdbuf` 对 stdout **无效**（平台级 setvbuf 失效），需要终端语义时用它顶上。
 
-> ⚠️ 实测本机这份二进制**子进程退出后自己不退出**：连 `timeout 15 faketty true` 都会被挂住杀掉。**所有用法一律用 `timeout N` 包住。**
+本份二进制含 **iSH 修复补丁**（原版会挂死并泄漏进程），已真机验证。
 
 ## 推荐用法
 
 ```sh
-# 1) 让程序自认 stdout 是终端（对比：不加 faketty 时是 NOT_TTY）
-timeout 3 faketty sh -c '[ -t 1 ] && echo IS_TTY || echo NOT_TTY'
-# IS_TTY
+# 1) 让子进程自认 stdout 是终端
+timeout 8 faketty sh -c '[ -t 1 ] && echo IS_TTY || echo NOT_TTY'     # IS_TTY
 
-# 2) 用 PTY 跑命令，管道喂输入（输出带 \r\n）
-printf 'hi\n' | timeout 3 faketty cat
+# 2) 管道里给颜色程序一个"终端"（否则它们会自动关色）
+timeout 8 faketty sh -c 'printf "\033[31mRED\033[0m\n"' | od -c       # ESC 序列原样保留
 
-# 3) 剥掉 PTY 的 \r（在消费端做），od 里确认只剩 \n
-printf 'a\nb\n' | timeout 3 faketty cat 2>/dev/null | tr -d '\r' | od -c
-# 0000000   a  \n   b  \n
+# 3) 退出码原样透传（可以拿它判断成败）
+timeout 8 faketty sh -c 'exit 42'; echo $?                            # 42
 
-# 4) 内部命令退出码在外层拿不到（被 timeout 杀掉恒 143）：
-#    让内层自己写文件
-timeout 3 faketty sh -c 'false; echo $? > rc' 2>/dev/null; cat rc
-# 1
+# 4) 把 PTY 输出的 \r 剥掉（在消费端做，别指望它不出）
+timeout 8 faketty cat <<< $'a\nb' 2>/dev/null | tr -d '\r'
 
-# 5) 唯一不挂死的路径：--version（不启动子进程）
-timeout 5 faketty --version
-# faketty 1.0.20
+# 5) 版本
+faketty --version                                                     # faketty 1.0.20
 ```
 
 ## 常用参数
 
-faketty 没有选项：`faketty <program> <args...>`；唯一旗标是 `--version`。
-`-h` 会报错：`error: unexpected argument '-h' found`（退出码 2）。
+| 参数 | 作用 |
+|---|---|
+| `--version` | 打印版本 |
+| （无其它选项） | 用法就是 `faketty <程序> [参数…]` |
 
-## 退出码 / 错误处理
+`-h` 不被接受，会报 `error: unexpected argument '-h' found`。
 
-- 实测外层恒为 **143**（子进程退出后 faketty 被 timeout SIGTERM）：**不能**用外层退出码判断内部命令成败
-- 判成败看输出，或让内层写文件：`timeout N faketty sh -c 'cmd; echo $? > rc'` 然后 `cat rc`
+## 行为契约
+
+- **只把 stdout 接进 PTY**：`[ -t 1 ]` 为真；stdin 不保证（实测报非终端），stderr 同理。
+- 输出走终端语义：`\n` 被转成 `\r\n`（ONLCR）。要干净文本就在**消费端** `tr -d '\r'`。
+- 转义序列（ANSI 颜色）原样透传。
+- **退出码原样透传**（多层包装也准）。
 
 ## iSH 注意事项
 
-- 所有调用都套 `timeout N`（本机挂死 bug，见开头警示）；N 取"命令预期时间 + 余量"。
-- PTY 输出按终端语义带 `\r\n`；进日志/比较前先 `tr -d '\r'`（实测 od 可证）。
-- 管道输入→PTY 正常：`printf … | faketty cat` 内容完整回显。
-- 需要精确退出码的流程别用它；那种场景考虑 socat 的 PTY 配方，或直接改写命令避开 TTY 依赖。
-- 注意：timeout 杀掉它时 shell 可能多打一行 `Terminated`，是正常噪音。
+- 本份二进制含 **iSH 挂死修复补丁**：原版 1.0.20 在 iSH 上子进程退出后**自己不退出**（pty 主端不发 EIO/EOF），每跑一次泄漏进程；补丁改为 `poll(100ms)` + `waitpid(WNOHANG)` 收尾。实测：退出码透传正常、连续运行后**残留进程 0**。
+- 判据：**如果看到 `rc=143`**（被 `timeout` 兜底击杀），说明手上是没打补丁的老二进制——换成仓库版即可。
+- 数据期的观感仍是"每行延迟一行"（iSH 的 stdio 层特性，PTY 改不了）。**不要拿它做实时时序实验**，它只解决"是不是终端"。
+- 老版泄漏的进程是常驻的，用 `ps | grep faketty` 找出来 `kill -9` 清掉；升级后不再产生。
+- **别被 iSH 的进程表骗了**：刚跑完立刻 `ps`，可能还看到 1 条 faketty——那是进程表约 1s 的更新延迟，**等一拍就消失**，不是泄漏。判断有无泄漏请隔 1 秒再数。
 
 ## 相关工具
 
-- `socat` —— 需要精细的 PTY 双向控制时（`socat - EXEC:'cmd',pty,raw,echo=0`）
-- `chronic` —— 只是想要"成功静默、失败回放"的包装时，用它别用 faketty
+- `socat` —— PTY 配方（`socat - EXEC:'cmd',pty,raw,echo=0`），需要更细的双向控制时用
+- `chronic` —— 只想要"成功静默、失败回放"的包装，用它（不做 TTY 伪装）
+- `tini` —— 需要信号转发 / 收尸时用它
