@@ -4,8 +4,8 @@ age-keygen	FiloSottile/age	v1.3.2	age 密钥生成（age-format identity/keypair
 cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道）
 curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
 doggo	mr-karan/doggo	v1.4.0	DNS 查询（dig 现代替代，多协议）
+faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n）
 fd	sharkdp/fd	v10.5.0	按模式找文件
-file	GNU file（自编译）	5.48	file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC）
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 mlr	johnkerl/miller	v6.22.0	CSV/TSV/JSON 数据切片（Miller）
@@ -24,7 +24,6 @@ ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译�
 ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口令，自编译）
 ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
 ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
-stdbuf	ish-toolbox 自实现（GNU 语义兼容）	1.0	LD_PRELOAD 调整子进程缓冲（-i/-o/-e；配套 libstdbuf.so 同目录）
 su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
