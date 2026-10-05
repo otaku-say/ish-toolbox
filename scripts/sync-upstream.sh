@@ -33,6 +33,8 @@ gping|orf/gping|ping 延迟折线图
 age|FiloSottile/age|文件加密
 kibi|ilai-deutel/kibi|极简终端编辑器
 bottom|ClementTsang/bottom|终端 TUI 监控
+su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
+step|smallstep/cli|现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -65,11 +67,14 @@ while IFS='|' read -r cmd repo desc; do
     ] | sort_by((if (.name|test("musl";"i")) then 0 else 1 end), .size)
     | .[0].browser_download_url // empty' "$W/m.json" 2>/dev/null)
 
-  if [ -z "$url" ]; then   # 裸二进制资产（如 riff）
+  if [ -z "$url" ]; then   # 裸二进制资产（如 riff、su-exec）
+    # 注意：不要求名字含 "linux" —— su-exec 的资产就叫 su-exec-static-v0.3-arm64，
+    # 只按「排除其它平台」来判定，否则永远匹配不到
     url=$(jq -r --arg re "$A_RE" '
-      [ .assets[]? | select(.name|test($re)) | select(.name|test("linux";"i"))
-        | select(.name|test("openbsd|freebsd|windows|darwin|android";"i")|not)
-        | select(.name|test("\\.(tar\\.gz|tgz|zip)$")|not) ]
+      [ .assets[]? | select(.name|test($re))
+        | select(.name|test("openbsd|freebsd|windows|darwin|android|msvc|apple|ppc64|s390x|riscv|armv7";"i")|not)
+        | select(.name|test("\\.(tar\\.gz|tgz|zip|tar\\.xz)$")|not)
+        | select(.name|test("checksums|sha256";"i")|not) ]
       | .[0].browser_download_url // empty' "$W/m.json" 2>/dev/null)
   fi
   [ -z "$url" ] && { echo "  ✗ $cmd 无 $want_arch 产物（$tag）"; continue; }
