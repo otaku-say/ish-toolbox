@@ -18,20 +18,27 @@
 <!-- TABLE:START -->
 | 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |
 |---|---|---|---|---|---|---|
+| `age` | 现代文件加密（X25519/SSH 密钥） | v1.3.2 | v1.3.2 | 3.5 MB | 3.8 MB | ✅ 最新 |
+| `age-keygen` | age 密钥生成 | v1.3.2 | v1.3.2 | 2.1 MB | 2.3 MB | ✅ 最新 |
 | `cascadia` | HTML CSS 选择器提取（stdin/stdout 管道） | v1.5.1 | v1.5.1 | 2.3 MB | 2.5 MB | ✅ 最新 |
 | `curl` | HTTP 客户端（LibreSSL 自编译：TLS1.3/HTTP2/压缩，内嵌 CA） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `gojq` | Go 版 jq（JSON 处理，jq 语法兼容） | v0.12.19 | v0.12.19 | 1.3 MB | 1.5 MB | ✅ 最新 |
 | `micropython` | MicroPython 解释器（unix port，静态自编译） | v1.29.0 | default | 0.6 MB | 0.7 MB | ✅ 源码构建 |
+| `mlr` | CSV/TSV/JSON 数据切片（Miller） | v6.22.0 | v6.22.0 | 4.3 MB | 5.1 MB | ✅ 最新 |
+| `openssl` | openssl CLI（LibreSSL 自建：s_client/证书/摘要） |  | 4.3.3 | 0.9 MB | 0.8 MB | ✅ 源码构建 |
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
 | `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | 1.8 MB | ✅ 最新 |
 | `sd` | 正则替换 | v1.1.0 | v1.1.0 | 0.7 MB | 0.8 MB | ✅ 最新 |
+| `sponge` | 管道落盘（先读全 stdin 再写文件） |  | 0.70 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `sqlite3` | SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译） |  | default | 0.5 MB | 0.5 MB | ✅ 源码构建 |
+| `stdbuf` | 调整子进程缓冲（LD_PRELOAD；配套 libstdbuf.so） |  | 1.0 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `su-exec` | 以指定用户身份执行命令（容器/脚本里的权限降级） | v0.3 | v0.3 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
+| `zstd` | zstd 压缩/解压（-T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 源码构建 |
 
-共 12 个工具 · arm64 合计 10.7 MB · amd64 合计 11.6 MB
+共 19 个工具 · arm64 合计 21.8 MB · amd64 合计 24.0 MB
 <!-- TABLE:END -->
 
 ## 安装
