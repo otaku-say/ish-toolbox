@@ -1,4 +1,4 @@
-name: 构建 curl + openssl + ssh（LibreSSL 静态）
+name: 构建 LibreSSL 套件（curl/openssl/ssh/socat 静态）
 
 # 为什么要自建：上游静态 curl（stunnel/static-curl）用 OpenSSL ≥3.5，
 # 其 TLS1.3 ClientHello 携带后量子签名算法，被 example.com / github.com /
@@ -8,8 +8,9 @@ name: 构建 curl + openssl + ssh（LibreSSL 静态）
 #   · 全静态 openssl CLI（s_client / 证书 / 摘要等）
 #   · OpenSSH 客户端套件 7 件（ssh/scp/sftp/ssh-keygen/ssh-keyscan/ssh-agent/
 #     ssh-add；全静态 + LibreSSL 后端；含本机 sshd 端到端验收）
+#   · socat（TCP/UNIX/TLS 中继；全静态 + LibreSSL；含 TCP/TLS 回环验收）
 # 配方：scripts/build/curl.sh（Alpine chroot，同架构原生执行）
-#       scripts/build/openssh.sh（同一 chroot 内、LibreSSL 就绪后构建）
+#       scripts/build/{openssh,socat}.sh（同一 chroot 内、LibreSSL 就绪后构建）
 
 on:
   workflow_dispatch:
@@ -17,6 +18,7 @@ on:
     paths:
       - 'scripts/build/curl.sh'
       - 'scripts/build/openssh.sh'
+      - 'scripts/build/socat.sh'
       - '.github/workflows/build-curl.yml'
   schedule:
     - cron: '52 3 * * *'        # 每日跟进（与 sync / build-source 错开）
@@ -65,15 +67,15 @@ jobs:
             echo "UPX 下载失败，本次跳过压缩"
           fi
 
-      - name: 构建（Alpine chroot + LibreSSL：curl / openssl / OpenSSH 套件，含验收）
+      - name: 构建（Alpine chroot + LibreSSL：curl / openssl / ssh 套件 / socat，含验收）
         run: |
           sudo bash scripts/build/curl.sh
           sudo chown "$(id -u):$(id -g)" /tmp/*.static /tmp/evidence.txt 2>/dev/null || true
 
-      - name: UPX 压缩 + 三判据 + 冒烟（curl / openssl / ssh 套件）
+      - name: UPX 压缩 + 三判据 + 冒烟（curl / openssl / ssh 套件 / socat）
         run: |
           set -eu
-          pack() { # $1=二进制 $2=version 子命令（curl/openssl 这类有版本旗标）
+          pack() { # $1=二进制 $2=version 子命令（有版本旗标：curl/openssl/socat）
             BIN="$1"; VC="$2"
             [ -f "$BIN" ] || { echo "✗ 缺 $BIN"; exit 1; }
             if command -v upx >/dev/null 2>&1; then
@@ -109,6 +111,7 @@ jobs:
           }
           pack /tmp/curl.static --version
           pack /tmp/openssl.static version
+          pack /tmp/socat.static -V
           for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
             pack2 "/tmp/$b.static"
           done
@@ -119,6 +122,7 @@ jobs:
           [ "$n" -ge 1 ] || { echo "✗ s_client 冒烟失败"; exit 1; }
           /tmp/ssh.static -V
           /tmp/ssh-keygen.static -q -t ed25519 -f /tmp/ci_k -N '' && /tmp/ssh-keygen.static -lf /tmp/ci_k.pub
+          /tmp/socat.static -V | head -1
           n=$(timeout 20 /tmp/ssh-keyscan.static -T 10 github.com 2>/dev/null | grep -c 'ssh-' || true)
           echo "ssh-keyscan github.com 条目 = $n（网络受限可忽略；本机 sshd 端到端已在 chroot 验收）"
 
@@ -126,7 +130,7 @@ jobs:
         run: |
           set -eu
           D="tools/${{ matrix.arch }}"
-          for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
+          for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat; do
             sudo cp "/tmp/$n.static" "$D/$n"
             sudo chmod 755 "$D/$n"
             sudo chown "$(id -u):$(id -g)" "$D/$n"
@@ -142,7 +146,7 @@ jobs:
           # rebase 冲突时生成物以本地产物为准（--theirs），杜绝冲突标记入库。
           git add -A
           if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-          git commit -m "build: LibreSSL 套件 curl+openssl+ssh [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+          git commit -m "build: LibreSSL 套件 curl+openssl+ssh+socat [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
           for i in 1 2 3 4 5; do
             if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
             echo "push 被拒，重试 $i/5…"
