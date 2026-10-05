@@ -1,6 +1,5 @@
 tool	repo	version	description
 cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道）
-curl	stunnel/static-curl	8.22.0	HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩）
 fd	sharkdp/fd	v10.5.0	按模式找文件
 gojq	itchyny/gojq	v0.12.19	Go 版 jq（JSON 处理，jq 语法兼容）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
