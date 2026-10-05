@@ -22,7 +22,7 @@
 | `age-keygen` | age 密钥生成（age-format identity/keypair） | v1.3.2 | v1.3.2 | 2.1 MB | 2.3 MB | ✅ 最新 |
 | `cascadia` | HTML CSS 选择器提取（stdin/stdout 管道） | v1.5.1 | v1.5.1 | 2.3 MB | 2.5 MB | ✅ 最新 |
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
-| `doggo` | DNS 查询（dig 现代替代，多协议） | v1.4.0 | v1.4.0 | — | 4.9 MB | ✅ 最新 |
+| `doggo` | DNS 查询（dig 现代替代，多协议） | v1.4.0 | v1.4.0 | 4.3 MB | — | ✅ 最新 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `file` | file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC） |  | 5.48 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `gojq` | Go 版 jq（JSON 处理，jq 语法兼容） | v0.12.19 | v0.12.19 | 1.3 MB | 1.5 MB | ✅ 最新 |
@@ -48,7 +48,7 @@
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 29 个工具 · arm64 合计 37.3 MB · amd64 合计 44.2 MB
+共 29 个工具 · arm64 合计 41.5 MB · amd64 合计 39.3 MB
 <!-- TABLE:END -->
 
 ## 安装
