@@ -25,19 +25,21 @@ if [ ! -d /tmp/build/micropython/ports/unix ]; then
   mv /tmp/build/micropython-[0-9]* /tmp/build/micropython 2>/dev/null
 fi
 
-# 3) 编译（官方 standalone 流程：tarball 自带子模块 → 先 deplibs 编 libffi → 再主构建）
-#    之前漏了 deplibs 一步，报 "ls: cannot access 'build-standard/lib/libffi/include'"。
+# 3) 编译（关闭依赖外部库/子模块的可选模块：FFI/SSL/BTREE）。
+#    这样不需要 standalone 流程的 libffi/mbedtls/berkeley-db 子模块构建，
+#    纯 Makefile + 交叉工具链直出，双架构一致。
 #    编译在子 shell 里做（install_verified 的 OUT 是相对路径，必须在外层调）
 XC=""; [ "$ARCH" = arm64 ] && XC="CROSS_COMPILE=aarch64-linux-gnu-"
 rm -f /tmp/build/mpy.bin
 ( cd /tmp/build/micropython/ports/unix \
-  && { make -j"$(nproc)" MICROPY_STANDALONE=1 $XC deplibs \
-       && make -j"$(nproc)" MICROPY_STANDALONE=1 $XC LDFLAGS_EXTRA="-static"; } >/tmp/m-mpy 2>&1 \
+  && make -j"$(nproc)" $XC MICROPY_PY_FFI=0 MICROPY_PY_SSL=0 MICROPY_PY_BTREE=0 \
+       LDFLAGS_EXTRA="-static -lm" >/tmp/m-mpy 2>&1 \
   && find . -type f -name micropython -perm -u+x -size +300k | head -1 | xargs -r -I{} cp {} /tmp/build/mpy.bin )
 
-# 4) 验证（子 shell 已把产物拷到 /tmp/build/mpy.bin）
+# 4) 验证（失败时打印日志尾部，便于诊断）
 if [ -f /tmp/build/mpy.bin ]; then
   install_verified /tmp/build/mpy.bin micropython
 else
-  echo "  ✗ micropython: $(grep -iE 'error|cannot|No rule' /tmp/m-mpy 2>/dev/null | head -1 | cut -c1-110)"
+  echo "  ✗ micropython 编译失败，日志尾部："
+  tail -15 /tmp/m-mpy 2>/dev/null | sed 's/^/    /'
 fi
