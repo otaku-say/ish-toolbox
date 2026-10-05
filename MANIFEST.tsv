@@ -8,7 +8,6 @@ faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程�
 fd	sharkdp/fd	v10.5.0	按模式找文件
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
-mlr	johnkerl/miller	v6.22.0	CSV/TSV/JSON 数据切片（Miller）
 openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）

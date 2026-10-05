@@ -27,7 +27,6 @@
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | — | 1.2 MB | ✅ 最新 |
 | `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
 | `micropython` | MicroPython 解释器（unix port，静态自编译） | v1.29.0 | default | 0.6 MB | 0.7 MB | ✅ 源码构建 |
-| `mlr` | CSV/TSV/JSON 数据切片（Miller） | v6.22.0 | v6.22.0 | — | 5.1 MB | ✅ 最新 |
 | `openssl` | openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套） |  | 4.3.3 | 0.9 MB | 0.8 MB | ✅ 源码构建 |
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | — | 1.0 MB | ✅ 最新 |
@@ -47,7 +46,7 @@
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 28 个工具 · arm64 合计 43.8 MB · amd64 合计 33.5 MB
+共 27 个工具 · arm64 合计 43.8 MB · amd64 合计 28.4 MB
 <!-- TABLE:END -->
 
 ## 安装
