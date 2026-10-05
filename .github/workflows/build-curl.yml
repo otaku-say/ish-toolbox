@@ -144,21 +144,24 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # 两个 job 同时结束会撞车：先本地 commit；push 失败则 fetch+rebase 重试。
-          # rebase 冲突时生成物以本地产物为准（--theirs），杜绝冲突标记入库。
-          git add -A
-          if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-          git commit -m "build: LibreSSL 套件 curl+openssl+ssh+socat+drill [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+          # 每轮重试都「重置到最新 origin/main → 重新产出」再提交，绝不在旧工作树上 rebase。
+          # 理由：本流水线与 sync / build-source 共用 repo-writer 组，可能同时结束；
+          # rebase 会在双方同为生成物的文件上冲突（tools/SHA256SUMS.<arch>，2026-10 实锤）。
           for i in 1 2 3 4 5; do
-            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
-            echo "push 被拒，重试 $i/5…"
+            echo "第 $i 轮：重置到 origin/main 后重新落地产物"
             git fetch origin main >/dev/null 2>&1
-            if ! git rebase origin/main >/dev/null 2>&1; then
-              echo "rebase 冲突：生成物以本地产物为准"
-              for f in $(git diff --name-only --diff-filter=U); do git checkout --theirs -- "$f" 2>/dev/null || true; done
-              git add -A
-              GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { echo "✗ rebase 无法收敛"; git rebase --abort 2>/dev/null || true; exit 1; }
-            fi
+            git reset --hard origin/main >/dev/null 2>&1
+            for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat drill; do
+              mkdir -p "tools/$n/${{ matrix.arch }}"
+              cp "/tmp/$n.static" "tools/$n/${{ matrix.arch }}/$n"
+              chmod 755 "tools/$n/${{ matrix.arch }}/$n"
+            done
+            ( cd tools && find . -path "./*/${{ matrix.arch }}/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.${{ matrix.arch }}" )
+            git add -A
+            if git diff --cached --quiet; then echo "无变更"; exit 0; fi
+            git commit -m "build: LibreSSL 套件 curl+openssl+ssh+socat+drill [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
+            echo "push 被拒，重试 $((i+1))/5…"
             sleep $((i * 3))
           done
           echo "push 多次失败"; exit 1
