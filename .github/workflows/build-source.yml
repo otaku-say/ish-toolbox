@@ -13,7 +13,7 @@ on:
       - 'scripts/build/**'
       - '.github/workflows/build-source.yml'
   schedule:
-    - cron: '37 3 * * 1'          # 每周一 UTC 03:37 跟一次（拿上游新提交）
+    - cron: '37 3 * * *'          # 每日 UTC 03:37 跟一次（上游有新提交就重建）
 
 permissions:
   contents: write

@@ -10,6 +10,10 @@ on:
         description: 只同步指定架构（留空=全部）
         required: false
         default: ''
+  push:
+    paths:
+      - 'scripts/sync-upstream.sh'
+      - '.github/workflows/sync.yml'
 
 permissions:
   contents: write
@@ -25,7 +29,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 从上游 latest release 抓取 + 三判据验证 + 覆盖（幂等）
+      - name: 装 UPX（入库前统一压缩）
+        run: |
+          if curl -fsSL -o /tmp/upx.txz https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-amd64_linux.tar.xz; then
+            tar xJf /tmp/upx.txz -C /tmp
+            sudo cp /tmp/upx-4.2.4-amd64_linux/upx /usr/local/bin/
+            upx --version | head -1
+          else
+            echo "UPX 下载失败，本次跳过压缩"; echo "UPX=0" >> "$GITHUB_ENV"
+          fi
+
+      # 从上游 latest release 抓取 + 三判据验证 + UPX + 覆盖（幂等）
       - name: 抓取并验证
         env:
           TARGET_ARCH: ${{ matrix.arch }}

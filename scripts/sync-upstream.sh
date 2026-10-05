@@ -94,8 +94,28 @@ while IFS='|' read -r cmd repo desc; do
   [ "$em" = "$A_EM" ] || { echo "  ✗ $cmd 架构不符（e_machine=$em，期望 $A_EM）"; continue; }
 
   cp "$B" "$T/$want_arch/$cmd" && chmod +x "$T/$want_arch/$cmd"
-  printf '  ✓ %-8s %-12s %6s MB\n' "$cmd" "$tag" \
-    "$(awk -v s=$(wc -c < "$T/$want_arch/$cmd") 'BEGIN{printf "%.1f", s/1048576}')"
+
+  # ── UPX 压缩（能用就用；失败自动回退）────────────────────────
+  # 注意：CI 的 runner 是 x86_64，arm64 产物**无法运行验证**，
+  # 所以这里只做「UPX 后三判据仍成立」的检查（架构/静态性不被破坏）。
+  local_note=""
+  if [ "${UPX:-1}" = 1 ] && command -v upx >/dev/null 2>&1; then
+    _f="$T/$want_arch/$cmd"; _pre=$(wc -c < "$_f"); cp "$_f" "$_f.pre-upx"
+    if upx --best -q "$_f" 2>/dev/null; then
+      _em2=$(od -An -tx1 -j18 -N1 "$_f" | tr -d ' \n')
+      if [ "$_em2" = "$A_EM" ] && ! readelf -d "$_f" 2>/dev/null | grep -q NEEDED; then
+        local_note="+UPX $(awk -v a="$_pre" -v c="$(wc -c < "$_f")" 'BEGIN{printf "%d%%", c*100/a}')"
+      else
+        mv "$_f.pre-upx" "$_f"
+      fi
+    else
+      mv "$_f.pre-upx" "$_f"
+    fi
+    rm -f "$_f.pre-upx"
+  fi
+
+  printf '  ✓ %-8s %-12s %6s MB %s\n' "$cmd" "$tag" \
+    "$(awk -v s=$(wc -c < "$T/$want_arch/$cmd") 'BEGIN{printf "%.1f", s/1048576}')" "$local_note"
   # 必须用 tab 分隔——gen-table.sh 按 tab 读；写成竖线会让整行被当成第一列（踩过）
   printf '%s\t%s\t%s\t%s\n' "$cmd" "$repo" "$tag" "$desc" >> "$W/manifest.part"
   ok=$((ok+1))
