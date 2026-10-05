@@ -8,7 +8,7 @@
 ```sh
 # 1) 基本查询：务必显式指定服务器
 #    （iSH 默认解析器会先试不可达的 IPv6 DNS，噪音多、慢）
-drill example.com @1.1.1.1
+timeout 20 drill example.com @1.1.1.1
 
 # 2) 指定记录类型 / 类别
 drill example.com @1.1.1.1 MX
@@ -61,9 +61,13 @@ drill -h
 ## 退出码 / 错误处理
 
 - `drill -v`、`drill -h` 退出码 0（实测）。
-- 查询命中时输出含 `;; ANSWER SECTION:`；脚本里判"拿到答案"就 grep 这一段。
-- **查询失败（超时/无响应）的退出码未逐项实测**——脚本里别只依赖退出码，配合 `timeout N` 与输出判读。
-- `-S` 验证成功时输出含 `Chase successful`；追不到则 `Chase failed.`。
+- ⚠️ **查询结果不影响退出码**：实测域名不存在（头部 `rcode: NXDOMAIN`）也是 **rc=0**。
+  **脚本里别用退出码判查询成败**，改成 grep 输出：
+  - 有答案 → 含 `;; ANSWER SECTION:`
+  - 域名不存在 → 头部 `rcode: NXDOMAIN`
+- ⚠️ **服务器不可达时会一直等下去**（实测 `@192.0.2.1` 挂到被超时杀掉）。
+  **一律用 `timeout N drill …` 包住**。
+- `-S` 验证成功输出含 `Chase successful`；追不到是 `Chase failed.`。
 
 ## iSH 注意事项
 

@@ -40,19 +40,17 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          if git diff --cached --quiet; then echo "清单已是最新"; exit 0; fi
-          git commit -m "docs: 刷新 tools/DOCS.sha256 [skip ci]" >/dev/null
+          # 每轮重试都重置到最新 origin/main 后重新生成清单再提交（不 rebase；
+          # 与其它流水线共用 repo-writer 组，rebase 会在生成物上冲突）。
           for i in 1 2 3 4 5; do
-            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
-            echo "push 被拒，重试 $i/5…"
             git fetch origin main >/dev/null 2>&1
-            if ! git rebase origin/main >/dev/null 2>&1; then
-              # 清单类生成物以本地为准
-              for f in $(git diff --name-only --diff-filter=U); do git checkout --theirs -- "$f" 2>/dev/null || true; done
-              git add -A
-              GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { echo "✗ rebase 无法收敛"; git rebase --abort 2>/dev/null || true; exit 1; }
-            fi
+            git reset --hard origin/main >/dev/null 2>&1
+            bash scripts/gen-doc-sums.sh
+            git add -A
+            if git diff --cached --quiet; then echo "清单已是最新"; exit 0; fi
+            git commit -m "docs: 刷新 tools/DOCS.sha256 [skip ci]" >/dev/null
+            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
+            echo "push 被拒，重试 $((i+1))/5…"
             sleep $((i * 3))
           done
           echo "push 多次失败"; exit 1
