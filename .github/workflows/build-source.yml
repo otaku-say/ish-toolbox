@@ -11,6 +11,10 @@ on:
       # 结果改 scripts/build/*.sh（每工具独立脚本）时 CI 根本不触发
       - 'scripts/build-from-source-ci.sh'
       - 'scripts/build/**'
+      # LibreSSL 套件（curl/openssl/ssh/socat）由 build-curl.yml 负责，别在这里白跑
+      - '!scripts/build/curl.sh'
+      - '!scripts/build/openssh.sh'
+      - '!scripts/build/socat.sh'
       - '.github/workflows/build-source.yml'
   schedule:
     - cron: '37 3 * * *'          # 每日 UTC 03:37 跟一次（上游有新提交就重建）
