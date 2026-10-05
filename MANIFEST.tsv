@@ -11,4 +11,6 @@ kibi	ilai-deutel/kibi	v0.3.3	极简终端编辑器
 ouch	ouch-org/ouch	0.8.3	统一解压
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
 sd	chmln/sd	v1.1.0	正则替换
+step	smallstep/cli	v0.31.0	现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
+su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
 zoxide	ajeetdsouza/zoxide	v0.10.0	目录智能跳转
