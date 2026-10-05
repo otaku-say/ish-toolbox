@@ -28,12 +28,18 @@ fi
 # 3) 编译（关闭依赖外部库/子模块的可选模块：FFI/SSL/BTREE）。
 #    这样不需要 standalone 流程的 libffi/mbedtls/berkeley-db 子模块构建，
 #    纯 Makefile + 交叉工具链直出，双架构一致。
-#    编译在子 shell 里做（install_verified 的 OUT 是相对路径，必须在外层调）
+#    ⚠️ mpy-cross 必须用「宿主机编译器」构建（官方文档要求），
+#       交叉版在 runner 上执行会 Exec format error（arm64 job 曾踩）。
+#    ⚠️ 编译在子 shell 里做（install_verified 的 OUT 是相对路径，必须在外层调）
 XC=""; [ "$ARCH" = arm64 ] && XC="CROSS_COMPILE=aarch64-linux-gnu-"
 rm -f /tmp/build/mpy.bin
-( cd /tmp/build/micropython/ports/unix \
-  && make -j"$(nproc)" $XC MICROPY_PY_FFI=0 MICROPY_PY_SSL=0 MICROPY_PY_BTREE=0 \
-       LDFLAGS_EXTRA="-static -lm" >/tmp/m-mpy 2>&1 \
+( cd /tmp/build/micropython \
+  && make -j"$(nproc)" -C mpy-cross >/dev/null 2>&1 \
+  && cp mpy-cross/build/mpy-cross /tmp/build/mpycross-host \
+  && cd ports/unix \
+  && MICROPY_MPYCROSS=/tmp/build/mpycross-host \
+     make -j"$(nproc)" $XC MICROPY_PY_FFI=0 MICROPY_PY_SSL=0 MICROPY_PY_BTREE=0 \
+          LDFLAGS_EXTRA="-static -lm" >/tmp/m-mpy 2>&1 \
   && find . -type f -name micropython -perm -u+x -size +300k | head -1 | xargs -r -I{} cp {} /tmp/build/mpy.bin )
 
 # 4) 验证（失败时打印日志尾部，便于诊断）
