@@ -167,7 +167,9 @@ fi
 # （build script 报 "failed to run custom build command for blake3"），
 # 纯 Rust 路径没有任何 C 依赖，产物体积也更小；代价是少了 SIMD 加速。
 if fetch BLAKE3-team/BLAKE3 BLAKE3; then
-  if [ "$ARCH" = arm64 ]; then B3F="--no-default-features --features std,pure"; else B3F=""; fi
+  # b3sum crate 的特性是 neon / prefer_intrinsics / pure —— **没有 std**，
+  # 曾经按 blake3 库的特性名写成 `--features std,pure` 导致 cargo 直接报错。
+  if [ "$ARCH" = arm64 ]; then B3F="--features pure"; else B3F=""; fi
   ( cd /tmp/build/BLAKE3/b3sum && CARGO_PROFILE_RELEASE_PANIC=abort \
     cargo build --release --target "$T" $B3F >/tmp/m4 2>&1 \
     && cp "target/$T/release/b3sum" /tmp/build/b3sum.bin ) \
@@ -190,7 +192,7 @@ if fetch_url "https://dev.yorhel.nl/download/ncdu-2.7.tar.gz" ncdu-2.7 ncdu; the
       CPPFLAGS="$NCINC" LDFLAGS="$NCLIB -Wl,--gc-sections" --disable-dependency-tracking >/tmp/c6 2>&1 \
     && make -j"$(nproc)" >/tmp/m6 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \
-    || echo "  ✗ ncdu: $(grep -iE 'error|not found' /tmp/m6 /tmp/c6 2>/dev/null | head -1)"
+    || echo "  ✗ ncdu: $(grep -iE 'error|not found|cannot' /tmp/m6 2>/dev/null | head -1 | cut -c1-100) | conf: $(grep -iE 'error|not found' /tmp/c6 2>/dev/null | head -1 | cut -c1-80)"
 fi
 
 echo "── $ARCH 完成：成功 $ok 个，失败 $fail 个 ──"
