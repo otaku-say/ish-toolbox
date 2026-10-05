@@ -5,6 +5,7 @@ fd	sharkdp/fd	v10.5.0	按模式找文件
 gojq	itchyny/gojq	v0.12.19	Go 版 jq（JSON 处理，jq 语法兼容）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
+qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
 sd	chmln/sd	v1.1.0	正则替换
 sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
