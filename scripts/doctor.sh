@@ -44,6 +44,22 @@ for f in "$D"/*; do
   [ -f "$f" ] || continue
   n="$(basename "$f")"; [ "$n" = "SHA256SUMS" ] && continue
 
+  case "$n" in
+    *.so)
+      # 共享库：允许 NEEDED（它就是动态库）；只核架构
+      em=$(od -An -tx1 -j18 -N1 "$f" 2>/dev/null | tr -d ' \n')
+      arch=$([ "$em" = "$EM" ] && echo ✓ || echo "✗$em")
+      [ "$em" != "$EM" ] && bad=$((bad+1))
+      printf '  %-9s %-6s %-6s %s\n' "$n" "SO" "$arch" \
+        "$(awk -v s=$(wc -c < "$f") 'BEGIN{printf "%.1fMB", s/1048576}')"
+      continue ;;
+    magic.mgc)
+      # 配套数据文件（magic 数据库）：不做 ELF 判据
+      printf '  %-9s %-6s %-6s %s\n' "$n" "DAT" "-" \
+        "$(awk -v s=$(wc -c < "$f") 'BEGIN{printf "%.1fMB", s/1048576}')"
+      continue ;;
+  esac
+
   st=FAIL
   readelf -l "$f" 2>/dev/null | grep -q INTERP || {
     readelf -d "$f" 2>/dev/null | grep -q NEEDED || st=OK
