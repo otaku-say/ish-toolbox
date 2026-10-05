@@ -17,3 +17,5 @@ ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译�
 socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
+tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景）
+chronic	otaku-say/ish-toolbox	1.0	命令成功则静默、失败才回放输出（极简 C 单文件；cron/脚本降噪）
