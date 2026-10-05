@@ -4,7 +4,9 @@
  * 执行，按 _STDBUF_{I,O,E} 对 stdin/stdout/stderr 调用 setvbuf：
  *   L = 行缓冲，0 = 无缓冲，数字 = 全缓冲指定字节数。
  */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
