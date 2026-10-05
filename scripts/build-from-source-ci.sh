@@ -116,7 +116,9 @@ NCINC="-I/tmp/nc-prefix/include -I/tmp/nc-prefix/include/ncursesw"; NCLIB="-L/tm
 # ── 体积优化（用户要求：arm 版要最小体积）─────────────────────────
 # C 侧：-Os（size 优先）+ 函数/数据分节 + 链接期 gc-sections 剔除未引用段
 # Rust 侧：CARGO_PROFILE_RELEASE_* 已设 opt-level=z / lto / strip（见上）
-CSIZE="-Os -ffunction-sections -fdata-sections"
+# 注意：-static 必须**同时**出现在 CFLAGS 里 —— 有些 Makefile（如 fzy）
+# 链接时只用 $(CFLAGS) 而不用 $(LDFLAGS)，只给 LDFLAGS 会产出动态可执行文件。
+CSIZE="-Os -ffunction-sections -fdata-sections -static"
 CLINK="-static -Wl,--gc-sections"
 
 # ── fzy：主程序在 src/ 下（6 个 .c），用它的 Makefile 编 ──────────
