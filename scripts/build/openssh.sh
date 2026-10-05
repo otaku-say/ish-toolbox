@@ -66,7 +66,12 @@ say "---- configure ----"
 say "configure OK"
 
 say "---- make -j$JOBS（7 个目标）----"
-if ! make -j"$JOBS" ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add LDFLAGS="-static -no-pie" \
+# 踩坑点：openssh 的 Makefile 把 LDFLAGS 定义成 "-L. -Lopenbsd-compat/ @LDFLAGS@"
+# （链接时的 -lssh / -lopenbsd-compat 指向构建目录内的内部静态库）。命令行整体
+# 覆盖 LDFLAGS 会连 -L 前缀一起冲掉 → ld 报 "cannot find -lssh"。此处显式保留
+# -L 前缀再叠加静态旗标（与 configure --with-ldflags 双保险）。
+if ! make -j"$JOBS" ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add \
+     LDFLAGS="-L. -Lopenbsd-compat/ -static -no-pie" \
      > /build/openssh-make.log 2>&1; then
   tail -40 /build/openssh-make.log | tee -a "$E"
   bad "make 失败"
