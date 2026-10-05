@@ -13,7 +13,7 @@ ARCH="${ARCH:?需要 ARCH=arm64|amd64}"
 export ARCH
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$(dirname "$HERE")"          # 仓库根目录（OUT 路径相对于它）
-mkdir -p "tools/$ARCH"
+mkdir -p tools
 
 # ── 公共环境 ─────────────────────────────────────────────────
 export CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.rustup"
@@ -27,24 +27,24 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge（moreutils 小件）、file（GNU file + magic.mgc）、jaq / faketty（Rust 自编译）
-TOOLS="patch micropython tree sqlite3 zstd sponge file jaq faketty"
+# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge（moreutils 小件）、jaq / faketty（Rust 自编译）
+TOOLS="patch micropython tree sqlite3 zstd sponge jaq faketty"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
   if bash "$HERE/build/$t.sh"; then
     # 判定该工具是否真的产出了文件（脚本本身总是 exit 0）
-    if [ -f "tools/$ARCH/$t" ]; then ok=$((ok+1)); else failed="$failed $t"; fi
+    if [ -f "tools/$t/$ARCH/$t" ]; then ok=$((ok+1)); else failed="$failed $t"; fi
   else
     failed="$failed $t"
   fi
 done
 
-( cd "tools/$ARCH" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS 2>/dev/null )
+( cd tools && find . -path "./*/$ARCH/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.$ARCH" )
 
 echo
 echo "═══ $ARCH 完成：成功 $ok 个，失败:${failed:- 无} ═══"
-ls -l "tools/$ARCH" | awk 'NR>1{printf "  %-10s %8.2f MB\n", $9, $5/1048576}'
+du -sh "tools/$ARCH"
 # ⚠️ 必须无条件 exit 0：部分工具失败不应阻断"提交已成功产物"这一步。
 # （曾经写成 `[ $fail -gt 0 ] && exit 0`，全部成功时该行返回 1 → job failure
 #   → 后续 commit 步骤被跳过，编好的产物全部白费）
