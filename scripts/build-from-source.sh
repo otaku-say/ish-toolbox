@@ -18,7 +18,7 @@
 #   sh build-from-source.sh BLAKE3-team/BLAKE3 b3sum amd64
 #
 # 依赖：git cargo curl tar musl 交叉工具链（脚本会自动装）
-# 产物：tools/<arch>/<二进制名>
+# 产物：tools/<二进制名>/<arch>/<二进制名>
 set -eu
 
 REPO="${1:?用法: build-from-source.sh <owner/repo> <binary> [arch]}"
@@ -109,10 +109,11 @@ readelf -d "$B" 2>/dev/null | grep -q NEEDED  && { echo "✗ 非静态（有 NEE
 em=$(od -An -tx1 -j18 -N1 "$B" | tr -d ' \n')
 [ "$em" = "$EM" ] || { echo "✗ 架构不符（$em ≠ $EM）"; exit 1; }
 
-mkdir -p "$ROOT/tools/$ARCH"
-cp "$B" "$ROOT/tools/$ARCH/$BIN" && chmod +x "$ROOT/tools/$ARCH/$BIN"
-( cd "$ROOT/tools/$ARCH" && sha256sum * > SHA256SUMS 2>/dev/null )
+D="$ROOT/tools/$BIN/$ARCH"
+mkdir -p "$D"
+cp "$B" "$D/$BIN" && chmod +x "$D/$BIN"
+( cd "$D" && sha256sum "$BIN" > SHA256SUMS 2>/dev/null )
 
 printf '  ✓ %-10s %6s MB  静态 aarch64/musl ✓\n' "$BIN" \
-  "$(awk -v s=$(wc -c < "$ROOT/tools/$ARCH/$BIN") 'BEGIN{printf "%.2f", s/1048576}')"
-echo "  → $ROOT/tools/$ARCH/$BIN"
+  "$(awk -v s=$(wc -c < "$D/$BIN") 'BEGIN{printf "%.2f", s/1048576}')"
+echo "  → $D/$BIN"

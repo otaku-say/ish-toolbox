@@ -44,7 +44,7 @@ done
 
 echo
 echo "═══ $ARCH 完成：成功 $ok 个，失败:${failed:- 无} ═══"
-du -sh "tools/$ARCH"
+du -sch tools/*/$ARCH 2>/dev/null | tail -1 || true
 # ⚠️ 必须无条件 exit 0：部分工具失败不应阻断"提交已成功产物"这一步。
 # （曾经写成 `[ $fail -gt 0 ] && exit 0`，全部成功时该行返回 1 → job failure
 #   → 后续 commit 步骤被跳过，编好的产物全部白费）

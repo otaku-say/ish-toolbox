@@ -254,7 +254,7 @@ say "embedded cert count = $nca（期望 >= 50）"
 if [ "$nca" -ge 50 ] 2>/dev/null; then ok "CA embed >= 50 ($nca)"; else bad "CA embed 数量不足 ($nca)"; fi
 
 sec "V8 GitHub raw 下载（rg 工具）"
-RG_URL=https://raw.githubusercontent.com/otaku-say/ish-toolbox/main/tools/arm64/rg
+RG_URL=https://raw.githubusercontent.com/otaku-say/ish-toolbox/main/tools/rg/arm64/rg
 code=$("$V" -sSL -o /build/dl-rg.bin --max-time 120 -w '%{http_code}' "$RG_URL" 2>/dev/null || true)
 sz=$(wc -c < /build/dl-rg.bin 2>/dev/null || echo 0)
 say "http_code=$code size=$sz"

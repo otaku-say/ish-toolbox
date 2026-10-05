@@ -16,14 +16,14 @@ case "$(uname -m)" in
   x86_64|amd64)  ARCH=amd64; EM=3e ;;
   *) echo "✗ 不支持的架构：$(uname -m)"; exit 1 ;;
 esac
-SRC="$ROOT/tools/$ARCH"
+SRC="$ROOT/tools"
 [ -d "$SRC" ] || { echo "✗ 找不到 $SRC"; exit 1; }
 
 mkdir -p "$DEST" || { echo "✗ 无法创建 $DEST"; exit 1; }
 echo "→ 架构 $ARCH，目标 $DEST"
 
 ok=0; skip=0
-for f in "$SRC"/*; do
+for f in "$SRC"/*/"$ARCH"/*; do
   [ -f "$f" ] || continue
   case "$(basename "$f")" in SHA256SUMS) continue ;; esac
   name="$(basename "$f")"

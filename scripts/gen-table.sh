@@ -4,7 +4,7 @@
 # 数据源：
 #   · 上游最新版本 —— GitHub API 实时查（每工具一次调用）
 #   · 仓库当前版本 —— MANIFEST.tsv（由 sync-upstream.sh 写入）
-#   · 体积         —— tools/{arm64,amd64}/ 实测
+#   · 体积         —— tools/<tool>/{arm64,amd64}/<tool> 实测
 #
 # 输出直接替换 README 里 <!-- TABLE:START --> … <!-- TABLE:END --> 之间的内容。
 # 依赖：curl jq（CI 的 ubuntu-latest 自带）
