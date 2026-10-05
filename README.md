@@ -25,7 +25,7 @@
 | `doggo` | DNS 查询（dig 现代替代，多协议） | v1.4.0 | v1.4.0 | 4.3 MB | 4.9 MB | ✅ 最新 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `file` | file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC） |  | 5.48 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `jaq` | jq 的快速 Rust 实现（自编译静态；f64 数值、无模块系统——兼容性分工见 SKILL.md） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
+| `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
 | `micropython` | MicroPython 解释器（unix port，静态自编译） | v1.29.0 | default | 0.6 MB | 0.7 MB | ✅ 源码构建 |
 | `mlr` | CSV/TSV/JSON 数据切片（Miller） | v6.22.0 | v6.22.0 | 4.3 MB | 5.1 MB | ✅ 最新 |
 | `openssl` | openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套） |  | 4.3.3 | 0.9 MB | 0.8 MB | ✅ 源码构建 |
@@ -48,7 +48,7 @@
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 29 个工具 · arm64 合计 41.1 MB · amd64 合计 45.1 MB
+共 29 个工具 · arm64 合计 41.1 MB · amd64 合计 43.7 MB
 <!-- TABLE:END -->
 
 ## 安装

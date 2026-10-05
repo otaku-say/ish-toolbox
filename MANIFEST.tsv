@@ -6,7 +6,7 @@ curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌
 doggo	mr-karan/doggo	v1.4.0	DNS 查询（dig 现代替代，多协议）
 fd	sharkdp/fd	v10.5.0	按模式找文件
 file	GNU file（自编译）	5.48	file(1) magic 识别文件类型（配套 magic.mgc 同目录，wrapper 自动指 MAGIC）
-jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；f64 数值、无模块系统——兼容性分工见 SKILL.md）
+jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 mlr	johnkerl/miller	v6.22.0	CSV/TSV/JSON 数据切片（Miller）
 openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
