@@ -3,6 +3,7 @@
 # curl.sh — LibreSSL 4.3.3 + curl 8.22.0 → 全静态 musl curl (按主机架构自动选择)
 # -----------------------------------------------------------------------------
 # 目标: 单文件全静态 curl（TLS=LibreSSL；CA 内嵌 --with-ca-embed；
+# 同配方附带产出：全静态 openssl CLI（LibreSSL apps；s_client / 证书 / 摘要）
 #       zlib/brotli/zstd/nghttp2 支持；不依赖任何运行时修复文件）。
 # 实测记录: 2026-10-05 于 CubeSandbox 沙箱
 #   （宿主 Ubuntu 22.04.5 容器 / root / x86_64 / 2 vCPU / 1.9GB RAM）
@@ -17,6 +18,7 @@
 #
 # 产物:
 #   /tmp/curl.static      —— 静态 curl（= chroot 内 /build/curl.static）
+#   /tmp/openssl.static   —— 静态 openssl CLI（= chroot 内 /build/openssl.static）
 #   /tmp/evidence.txt     —— 验收输出汇总（含各步输出与 sha256）
 #   /tmp/curl.sh  —— 本脚本自身副本
 #
@@ -137,12 +139,23 @@ else
   # --enable-static，并不出现 "--disable-shared" 字样 —— 不能写 grep 探测，
   # 直接显式传参（autoconf 完整接受 --disable-shared 否定形式）。
   ./configure --prefix=/usr --disable-shared --enable-static
-  make -j"$JOBS" || { echo "WARN: make -j$JOBS 失败, 回退 -j1 重试"; make -j1; }
+  # 踩坑点(3): libtool 项目，apps 必须用 -all-static 才会静态链接最终程序
+  make -j"$JOBS" LDFLAGS="-no-pie -all-static" || { echo "WARN: make -j$JOBS 失败, 回退 -j1 重试"; make -j1 LDFLAGS="-no-pie -all-static"; }
   make install
   cd /build
   touch /build/.libressl.done
 fi
 ls -l /usr/lib/libcrypto.a /usr/lib/libssl.a /usr/lib/libtls.a
+
+# ---- openssl CLI：全静态交付（随 LibreSSL 一起构建）----
+if [ ! -f /build/openssl.static ]; then
+  file /usr/bin/openssl 2>/dev/null | grep -q 'statically linked' \
+    || { echo "FATAL: /usr/bin/openssl 非全静态"; file /usr/bin/openssl; exit 1; }
+  cp /usr/bin/openssl /build/openssl.static
+  strip /build/openssl.static 2>/dev/null || true
+fi
+ls -l /build/openssl.static
+sha256sum /build/openssl.static
 
 # ---------------- [i3] curl ----------------
 log 5 "curl $CURL_VER"
@@ -252,6 +265,15 @@ case "$out" in
 esac
 
 say ""
+sec "V10 openssl CLI（LibreSSL，全静态）"
+O=/build/openssl.static
+file "$O" | tee -a "$E"
+file "$O" | grep -q 'statically linked' && ok "openssl 全静态" || bad "openssl 非全静态"
+"$O" version 2>&1 | tee -a "$E"
+ncert=$(echo | "$O" s_client -connect example.com:443 -servername example.com 2>&1 | grep -c 'BEGIN CERTIFICATE' || true)
+say "s_client 证书链张数 = $ncert"
+[ "$ncert" -ge 1 ] 2>/dev/null && ok "s_client 可用" || bad "s_client 异常"
+
 say "INNER-SUMMARY: PASS=$(grep -c '^\[PASS\]' "$E" || true) FAIL=$FAILS"
 [ "$FAILS" = 0 ] || exit 1
 INNER_EOF
@@ -300,6 +322,7 @@ F=$(grep -c '^\[FAIL\]' "$EV" 2>/dev/null || true)
 
 if [ -f "$BUILD_DIR/curl.static" ]; then
   cp "$BUILD_DIR/curl.static" /tmp/curl.static
+  [ -f "$BUILD_DIR/openssl.static" ] && cp "$BUILD_DIR/openssl.static" /tmp/openssl.static && sha256sum /tmp/openssl.static
   ls -l /tmp/curl.static
   sha256sum /tmp/curl.static
 fi
@@ -308,7 +331,7 @@ case "$0" in
   /tmp/curl.sh) ;;
   *) cp "$0" /tmp/curl.sh 2>/dev/null || true ;;
 esac
-echo "产物: /tmp/curl.static ; 证据: /tmp/evidence.txt ; 配方: /tmp/curl.sh"
+echo "产物: /tmp/curl.static /tmp/openssl.static ; 证据: /tmp/evidence.txt ; 配方: /tmp/curl.sh"
 [ "$F" = 0 ] && [ "$INNER_RC" = 0 ]
 
 # =============================================================================
