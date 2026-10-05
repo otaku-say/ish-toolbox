@@ -8,3 +8,10 @@ zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T �
 openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
 stdbuf	ish-toolbox 自实现（GNU 语义兼容）	1.0	LD_PRELOAD 调整子进程缓冲（-i/-o/-e；配套 libstdbuf.so 同目录）
+ssh	openssh/openssh-portable	10.5p1	SSH 客户端（全静态；LibreSSL 后端，自编译）
+scp	openssh/openssh-portable	10.5p1	SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议）
+sftp	openssh/openssh-portable	10.5p1	交互式 SFTP 文件传输（自编译）
+ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
+ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
+ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口令，自编译）
+ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译）
