@@ -51,6 +51,9 @@ SRC_SSL="https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$LIBRESSL_VER.tar
 SRC_CURL="https://curl.se/download/curl-$CURL_VER.tar.xz"
 SRC_CA="https://curl.se/ca/cacert.pem"
 
+# 脚本自身所在目录（顶部固定；避免后续 cd 改变 cwd 后 $0 相对路径解析失败）
+HERE="$(cd "$(dirname "$0")" && pwd)"
+
 # ---------------- [0] 模式判定 ----------------
 if [ -f /etc/alpine-release ]; then
   MODE=native
@@ -294,7 +297,6 @@ say "INNER-SUMMARY: PASS=$(grep -c '^\[PASS\]' "$E" || true) FAIL=$FAILS"
 INNER_EOF
 
 # openssh 配方随 chroot 带入（LibreSSL 就绪后由 inner 调用；产物即 /build/*.static）
-HERE="$(cd "$(dirname "$0")" && pwd)"
 if [ -f "$HERE/openssh.sh" ]; then
   cp "$HERE/openssh.sh" "$BUILD_DIR/openssh.sh"
 else
