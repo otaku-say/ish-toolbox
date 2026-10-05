@@ -42,12 +42,15 @@ jobs:
           sh /tmp/ru.sh -y --profile minimal --default-toolchain stable
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
-      - name: musl 交叉工具链（arm64 需要）
+      - name: musl 交叉工具链
+        # v1 用 musl.cc 失败了（runner 连它超时 135s）。
+        # arm64 改为完全依赖两个稳定源：
+        #   · Zig（自带 musl libc，负责 C 部分）—— 从 GitHub Release 装
+        #   · Rust 自带 self-contained 链接（rust-lld + libc.a）
         if: matrix.arch == 'arm64'
-        run: |
-          curl -fsSL --max-time 600 -o /tmp/musl.tgz https://musl.cc/aarch64-linux-musl-cross.tgz
-          sudo tar xzf /tmp/musl.tgz -C /opt
-          echo "/opt/aarch64-linux-musl-cross/bin" >> "$GITHUB_PATH"
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.13.0
 
       - name: 编译并验证
         env:
