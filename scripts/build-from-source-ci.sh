@@ -100,16 +100,15 @@ if [ ! -f /tmp/nc-prefix/lib/libncursesw.a ]; then
     && echo "  ✓ ncurses(musl) 就绪" \
     || echo "  ! ncurses 编译失败: $(tail -2 /tmp/ncc 2>/dev/null | head -1)"
 fi
-NCINC="-I/tmp/nc-prefix/include"; NCLIB="-L/tmp/nc-prefix/lib"
+NCINC="-I/tmp/nc-prefix/include -I/tmp/nc-prefix/include/ncursesw"; NCLIB="-L/tmp/nc-prefix/lib"
 
-# ── fzy：单文件 C（v1 报 "compilation terminated"是目录不存在导致）──
+# ── fzy：主程序在 src/ 下（6 个 .c），用它的 Makefile 编 ──────────
 if fetch jhawthorn/fzy fzy; then
-  ls /tmp/build/fzy/fzy.c >/dev/null 2>&1 || echo "  ! fzy.c 不在预期位置: $(ls /tmp/build/fzy | head -3)"
-  if [ "$ARCH" = arm64 ]; then
-    zig cc -target aarch64-linux-musl -O3 -static -o /tmp/build/fzy.bin /tmp/build/fzy/fzy.c 2>/tmp/e1
-  else
-    musl-gcc -O3 -static -o /tmp/build/fzy.bin /tmp/build/fzy/fzy.c 2>/tmp/e1
-  fi && install_verified /tmp/build/fzy.bin fzy || echo "  ✗ fzy: $(head -3 /tmp/e1 2>/dev/null | tr '\n' ' ')"
+  if [ "$ARCH" = arm64 ]; then ZCC="zig cc -target aarch64-linux-musl"; else ZCC="musl-gcc"; fi
+  ( cd /tmp/build/fzy && make CC="$ZCC" CFLAGS="-O3 -static" LDFLAGS="-static" >/tmp/e1 2>&1 \
+    && cp fzy /tmp/build/fzy.bin ) \
+    && install_verified /tmp/build/fzy.bin fzy \
+    || echo "  ✗ fzy: $(head -3 /tmp/e1 2>/dev/null | tr '\n' ' ')"
 fi
 
 # ── patch：autotools（patchutils/patch 的 tarball 是 404，换 GNU 官方镜像）
@@ -124,7 +123,7 @@ fi
 # ── nnn：Makefile 直编；musl 无 fts.h → O_NOFTS；ncurses 用前置编好的 musl 版 ──
 if fetch jarun/nnn nnn; then
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
-    make nnn CC="$CROSS_CC" O_NOFTS=1 \
+    make nnn CC="$CROSS_CC" O_NOFTS=1 O_NORL=1 O_STATIC=1 \
          CPPFLAGS="$NCINC" LDLIBS="$NCLIB -lncursesw" >/tmp/m3 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
