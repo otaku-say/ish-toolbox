@@ -2,10 +2,11 @@
 # _common.sh —— 构建脚本公共层（被 scripts/build/<tool>.sh source）
 #
 # 提供：架构环境、体积优化标志、三判据验证、下载工具函数。
+# 布局：tools/<tool>/<arch>/<tool>（每工具一枚目录，内含 arm64/amd64 子目录）
 # 环境变量 ARCH 必须由调用方设置（arm64 | amd64）。
 
 ARCH="${ARCH:?需要 ARCH=arm64|amd64}"
-OUT="tools/$ARCH"
+OUT="tools"
 mkdir -p "$OUT" /tmp/build
 
 case "$ARCH" in
@@ -80,8 +81,9 @@ install_verified() {  # <路径> <命令名>
     fi
     rm -f "$b.pre-upx"
   fi
-  cp "$b" "$OUT/$n" && chmod +x "$OUT/$n"
-  printf '  ✓ %-8s %6.2f MB%s\n' "$n" "$(awk -v s="$(wc -c < "$OUT/$n")" 'BEGIN{print s/1048576}')" "$note"
+  mkdir -p "$OUT/$n/$ARCH"
+  cp "$b" "$OUT/$n/$ARCH/$n" && chmod +x "$OUT/$n/$ARCH/$n"
+  printf '  ✓ %-8s %6.2f MB%s\n' "$n" "$(awk -v s="$(wc -c < "$OUT/$n/$ARCH/$n")" 'BEGIN{print s/1048576}')" "$note"
 }
 
 # GitHub 源码 tarball（依次试 main / master）
