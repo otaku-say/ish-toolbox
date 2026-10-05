@@ -129,14 +129,14 @@ jobs:
       - name: 落地到仓库
         run: |
           set -eu
-          D="tools/${{ matrix.arch }}"
           for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat; do
-            sudo cp "/tmp/$n.static" "$D/$n"
-            sudo chmod 755 "$D/$n"
-            sudo chown "$(id -u):$(id -g)" "$D/$n"
+            sudo mkdir -p "tools/$n/${{ matrix.arch }}"
+            sudo cp "/tmp/$n.static" "tools/$n/${{ matrix.arch }}/$n"
+            sudo chmod 755 "tools/$n/${{ matrix.arch }}/$n"
+            sudo chown "$(id -u):$(id -g)" "tools/$n/${{ matrix.arch }}/$n"
           done
-          ( cd "$D" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS )
-          ls -l "$D" | head -40
+          ( cd tools && find . -path "./*/${{ matrix.arch }}/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.${{ matrix.arch }}" )
+          ls -l tools | head -40
 
       - name: 提交变更
         run: |
@@ -166,6 +166,6 @@ jobs:
         with:
           name: libressl-suite-${{ matrix.arch }}
           path: |
-            tools/${{ matrix.arch }}/*
+            tools/*/${{ matrix.arch }}/
             /tmp/evidence.txt
           retention-days: 14
