@@ -1,6 +1,10 @@
 tool	repo	version	description
 cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道）
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
+>>>>>>> Stashed changes
 =======
 curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
 >>>>>>> Stashed changes
