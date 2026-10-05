@@ -19,7 +19,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: build-source-${{ github.ref }}
+  # 与 sync / build-curl 共用同一组：所有会提交的流水线串行
+  group: repo-writer
   cancel-in-progress: false
 
 jobs:
@@ -88,7 +89,12 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           # 两个架构的 job 同时结束时 push 会撞车 → 先 rebase，失败重试
           for i in 1 2 3 4 5; do
-            git pull --rebase --autostash origin main >/dev/null 2>&1 || true
+            if ! git pull --rebase --autostash origin main >/dev/null 2>&1; then
+              echo "✗ pull --rebase 冲突，放弃本次提交"; exit 1
+            fi
+            if grep -RIlq --exclude-dir=.git '^<<<<<<< ' . 2>/dev/null; then
+              echo "✗ 工作树存在冲突标记，放弃提交"; exit 1
+            fi
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
             git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
