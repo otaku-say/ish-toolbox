@@ -59,5 +59,5 @@ curl -s -m 3 -o /dev/null http://10.255.255.1/; echo $?
 
 ## 相关工具
 
-- `doggo` —— HTTP 之前先做 DNS 查询
+- `drill` —— HTTP 之前先做 DNS 查询
 - `openssl s_client` —— 查证书链/到期时间

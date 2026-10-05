@@ -78,4 +78,4 @@ wait; cat /tmp/demo_recv.txt    # → hi
 - `curl` / `openssl` —— HTTP 与 TLS 的完整选择（socat 适合"裸探"）
 - `faketty` —— 单一用途的 PTY 包装，简单场景更顺手
 - `ssh` / `scp` / `sftp` —— SSH 侧传输
-- `doggo` —— DNS 排查（网络问题先查这里）
+- `drill` —— DNS 排查（网络问题先查这里）
