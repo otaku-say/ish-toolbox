@@ -76,6 +76,7 @@ jobs:
       - name: 编译并验证
         env:
           ARCH: ${{ matrix.arch }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           bash scripts/build-from-source-ci.sh
           echo "### ${{ matrix.arch }} 构建结果" >> "$GITHUB_STEP_SUMMARY"
