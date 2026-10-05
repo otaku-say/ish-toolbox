@@ -24,6 +24,6 @@ ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口�
 ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
 ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
 su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
-tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景）
+tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
