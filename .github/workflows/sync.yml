@@ -14,6 +14,7 @@ on:
     paths:
       - 'scripts/sync-upstream.sh'
       - 'MANIFEST.extra.tsv'     # 自编译工具元数据变更时，MANIFEST 也要重新合并
+      - 'scripts/gen-table.sh'
       - '.github/workflows/sync.yml'
 
 permissions:
@@ -54,6 +55,11 @@ jobs:
 
       - name: 体检
         run: sh scripts/doctor.sh ${{ matrix.arch }}
+
+      - name: 刷新 README 对比表
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sh scripts/gen-table.sh || echo 'gen-table 失败（不阻断提交）'
 
       - name: 提交变更
         run: |
