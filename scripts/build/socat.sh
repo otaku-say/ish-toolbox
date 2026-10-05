@@ -23,10 +23,11 @@ DLC=/build/curl.static
 [ -x "$DLC" ] || DLC=curl
 if [ ! -f "socat-$SOCAT_VER.tar.gz" ]; then
   say "---- 下载 socat-$SOCAT_VER.tar.gz ----"
+  # 站点的 https 证书主机名不匹配（www.clausfischer.com），http 才是可靠首选
   "$DLC" -fsSL --max-time 120 -o "socat-$SOCAT_VER.tar.gz" \
-      "https://www.dest-unreach.org/socat/download/socat-$SOCAT_VER.tar.gz" \
-    || "$DLC" -fsSL --max-time 120 -o "socat-$SOCAT_VER.tar.gz" \
       "http://www.dest-unreach.org/socat/download/socat-$SOCAT_VER.tar.gz" \
+    || "$DLC" -fsSL --max-time 120 -o "socat-$SOCAT_VER.tar.gz" \
+      "https://www.dest-unreach.org/socat/download/socat-$SOCAT_VER.tar.gz" \
     || { bad "socat 源码下载失败"; exit 1; }
 fi
 sha256sum "socat-$SOCAT_VER.tar.gz" | tee -a "$E"
@@ -55,9 +56,11 @@ strip socat 2>/dev/null || true
 cp socat /build/socat.static
 ok "socat 静态链接（$(wc -c < /build/socat.static) bytes，stripped）"
 
-V=$(./socat -V 2>&1 | head -1) || true
-say "socat -V => $V"
-case "$V" in *socat*version*) ok "版本行正常" ;; *) bad "版本行异常: $V" ;; esac
+# socat -V 第一行是版权行，版本号在后续行（1.8.x：第二行 "socat version x.y.z"）
+V=$(./socat -V 2>&1) || true
+say "socat -V（前 2 行）=> $(echo "$V" | head -2 | tr '\n' ' ')"
+case "$V" in *socat*version*) ok "版本行正常" ;; *) bad "版本行异常: $(echo "$V" | head -2 | tr '\n' ' ')" ;; esac
+echo "$V" | grep -i 'openssl' | head -2 | tee -a "$E" || true
 
 # ---------------- 功能回环 1：TCP（单向） ----------------
 ./socat -u TCP-LISTEN:29001,reuseaddr,fork - > /tmp/socat-tcp.out 2>/tmp/socat-tcp.err &
