@@ -5,7 +5,7 @@
 . "$(dirname "$0")/_common.sh"
 
 SRC="$(cd "$(dirname "$0")" && pwd)/chronic.c"
-if $CROSS_CC $CSIZE -o /tmp/build/chronic.bin "$SRC" >/tmp/m-chronic 2>&1; then
+if $CROSS_CC $CSIZE -Werror=implicit-function-declaration -o /tmp/build/chronic.bin "$SRC" >/tmp/m-chronic 2>&1; then
   install_verified /tmp/build/chronic.bin chronic \
     || echo "  ✗ chronic: 产物验证失败"
 else
