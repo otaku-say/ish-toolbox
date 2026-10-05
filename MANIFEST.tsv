@@ -1,6 +1,7 @@
 tool	repo	version	description
 age	FiloSottile/age	v1.3.2	文件加密
 bat	sharkdp/bat	v0.26.1	语法高亮看源码，兼做 diff 渲染
+binsider	orhun/binsider	v0.3.2	ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
 bottom	ClementTsang/bottom	0.14.9	终端 TUI 监控
 curl	stunnel/static-curl	8.22.0	HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩；替代体积更大的 xh）
 dust	bootandy/dust	v1.2.6	目录占用树
