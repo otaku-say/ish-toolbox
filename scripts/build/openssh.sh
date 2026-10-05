@@ -45,8 +45,11 @@ sha256sum "openssh-$OPENSSH_VER.tar.gz" | tee -a "$E"
 
 # ---------------- [s2] 构建依赖 ----------------
 apk add --no-cache zlib-static >/dev/null 2>&1 || true
-# openssh-server 仅用于本机端到端验收（不进入交付产物）
-apk add --no-cache openssh-server >/dev/null 2>&1 || say "[WARN] openssh-server 安装失败：端到端验收将跳过"
+# openssh-server / sftp-server 仅用于本机端到端验收（不进入交付产物）
+# 踩坑点：Alpine 的 sftp-server 是独立子包，缺它会导致 scp（默认走 SFTP 协议）/sftp 失败
+apk add --no-cache openssh-server openssh-sftp-server >/dev/null 2>&1 \
+  || apk add --no-cache openssh-server >/dev/null 2>&1 \
+  || say "[WARN] openssh-server/sftp-server 安装失败：端到端验收将跳过"
 
 # ---------------- [s3] 配置 + 构建 ----------------
 rm -rf "openssh-$OPENSSH_VER"
@@ -126,17 +129,21 @@ if [ -x /usr/sbin/sshd ]; then
        say "---- sshd.log 尾部 ----"; tail -15 /build/sshd.log 2>/dev/null | tee -a "$E" || true ;;
   esac
 
-  # 2) scp 上传 + 字节比对
-  if timeout 30 ./scp -P 2222 $CO -i /build/tk /build/cacert.pem root@127.0.0.1:/tmp/scp-test.pem >/dev/null 2>&1 \
-     && cmp -s /build/cacert.pem /tmp/scp-test.pem; then
+  # 2) scp 上传 + 字节比对（现代 scp 走 SFTP 协议，需要远端 sftp-server 子系统）
+  timeout 30 ./scp -P 2222 $CO -i /build/tk /build/cacert.pem root@127.0.0.1:/tmp/scp-test.pem >/tmp/scp-out 2>&1 || true
+  if cmp -s /build/cacert.pem /tmp/scp-test.pem; then
     ok "端到端 scp 上传字节一致"
   else
-    bad "端到端 scp 失败"
+    bad "端到端 scp 失败：$(tail -2 /tmp/scp-out 2>/dev/null | tr '\n' ' ')"
   fi
 
-  # 3) sftp 下载
-  printf 'get /etc/hostname /tmp/remote-hostname\n' | timeout 30 ./sftp -P 2222 $CO -i /build/tk -b - root@127.0.0.1 >/dev/null 2>&1 || true
-  if [ -s /tmp/remote-hostname ]; then ok "端到端 sftp 下载（$(cat /tmp/remote-hostname)）"; else bad "端到端 sftp 失败"; fi
+  # 3) sftp 下载（用一定存在的 /etc/passwd 做样本）
+  printf 'get /etc/passwd /tmp/remote-passwd\n' | timeout 30 ./sftp -P 2222 $CO -i /build/tk -b - root@127.0.0.1 >/tmp/sftp-out 2>&1 || true
+  if [ -s /tmp/remote-passwd ]; then
+    ok "端到端 sftp 下载（$(wc -c < /tmp/remote-passwd) bytes）"
+  else
+    bad "端到端 sftp 失败：$(tail -2 /tmp/sftp-out 2>/dev/null | tr '\n' ' ')"
+  fi
 
   # 4) ssh-keyscan
   n=$(timeout 20 ./ssh-keyscan -p 2222 -T 5 127.0.0.1 2>/dev/null | grep -c 'ssh-' || true)
