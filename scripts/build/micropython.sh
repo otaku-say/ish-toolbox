@@ -25,16 +25,19 @@ if [ ! -d /tmp/build/micropython/ports/unix ]; then
   mv /tmp/build/micropython-[0-9]* /tmp/build/micropython 2>/dev/null
 fi
 
-# 3) 编译（standalone：所有第三方库都用同一工具链自编静态版）
-cd /tmp/build/micropython/ports/unix || exit 0
+# 3) 编译（官方 standalone 流程：tarball 自带子模块 → 先 deplibs 编 libffi → 再主构建）
+#    之前漏了 deplibs 一步，报 "ls: cannot access 'build-standard/lib/libffi/include'"。
+#    编译在子 shell 里做（install_verified 的 OUT 是相对路径，必须在外层调）
 XC=""; [ "$ARCH" = arm64 ] && XC="CROSS_COMPILE=aarch64-linux-gnu-"
-make -j"$(nproc)" MICROPY_STANDALONE=1 $XC \
-     CFLAGS_EXTRA="-Os" LDFLAGS_EXTRA="-static" >/tmp/m-mpy 2>&1
+rm -f /tmp/build/mpy.bin
+( cd /tmp/build/micropython/ports/unix \
+  && { make -j"$(nproc)" MICROPY_STANDALONE=1 $XC deplibs \
+       && make -j"$(nproc)" MICROPY_STANDALONE=1 $XC LDFLAGS_EXTRA="-static"; } >/tmp/m-mpy 2>&1 \
+  && find . -type f -name micropython -perm -u+x -size +300k | head -1 | xargs -r -I{} cp {} /tmp/build/mpy.bin )
 
-# 4) 找产物（新版路径 build-standard/，老版 build/）并过三判据
-B=$(find . -type f -name micropython -perm -u+x -size +300k 2>/dev/null | head -1)
-if [ -n "$B" ]; then
-  install_verified "$B" micropython
+# 4) 验证（子 shell 已把产物拷到 /tmp/build/mpy.bin）
+if [ -f /tmp/build/mpy.bin ]; then
+  install_verified /tmp/build/mpy.bin micropython
 else
   echo "  ✗ micropython: $(grep -iE 'error|cannot|No rule' /tmp/m-mpy 2>/dev/null | head -1 | cut -c1-110)"
 fi

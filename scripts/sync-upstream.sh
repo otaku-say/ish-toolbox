@@ -20,25 +20,13 @@ W=$(mktemp -d); trap 'rm -rf "$W"' EXIT INT TERM
 
 # cmd | repo | 说明
 LIST='
-bat|sharkdp/bat|语法高亮看源码，兼做 diff 渲染
 rg|BurntSushi/ripgrep|高速递归搜索
 fd|sharkdp/fd|按模式找文件
-fzf|junegunn/fzf|模糊选择列表
 sd|chmln/sd|正则替换
-curl|stunnel/static-curl|HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩；替代体积更大的 xh）
-zoxide|ajeetdsouza/zoxide|目录智能跳转
-dust|bootandy/dust|目录占用树
-ouch|ouch-org/ouch|统一解压
-gping|orf/gping|ping 延迟折线图
-age|FiloSottile/age|文件加密
-kibi|ilai-deutel/kibi|极简终端编辑器
-bottom|ClementTsang/bottom|终端 TUI 监控
-su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
-step|smallstep/cli|现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
-binsider|orhun/binsider|ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
+curl|stunnel/static-curl|HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩）
+su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
 gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
-qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
-cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道，替代 htmlq）
+cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -147,7 +135,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="fzy patch b3sum jaq riff micropython"
+SELF_BUILT="patch micropython tree sqlite3"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do

@@ -1,7 +1,5 @@
 tool	repo	version	description
-b3sum	BLAKE3-team/BLAKE3	default	BLAKE3 哈希（自编译，上游无 arm64 musl 产物）
-fzy	jhawthorn/fzy	default	模糊查找（自编译，上游无 arm64 产物）
-jaq	01mf02/jaq	default	Rust 版 jq（自编译，musl 版需自编）
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
-patch	gnu-mirror-unofficial/patch	default	打补丁（自编译）
-riff	walles/riff	default	diff 高亮渲染（自编译）
+patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
+sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
+tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）

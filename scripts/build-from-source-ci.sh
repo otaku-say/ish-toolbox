@@ -27,9 +27,8 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# nnn 已移除（ncurses 交叉编译链成本过高）；htmlq 已移除（改用上游同步的 cascadia）
-# 现役：fzy / patch / b3sum / jaq / riff（上游不给 arm64 musl 产物）+ micropython（上游只发源码）
-TOOLS="fzy patch b3sum jaq riff micropython"
+# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3（上游只发源码）
+TOOLS="patch micropython tree sqlite3"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
