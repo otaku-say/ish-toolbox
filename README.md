@@ -18,21 +18,21 @@
 <!-- TABLE:START -->
 | 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |
 |---|---|---|---|---|---|---|
-| `age` | 现代文件加密（X25519/SSH 密钥；age + age-keygen） | v1.3.2 | v1.3.2 | — | 3.8 MB | ✅ 最新 |
-| `age-keygen` | age 密钥生成（age-format identity/keypair） | v1.3.2 | v1.3.2 | — | 2.3 MB | ✅ 最新 |
-| `cascadia` | HTML CSS 选择器提取（stdin/stdout 管道） | v1.5.1 | v1.5.1 | — | 2.5 MB | ✅ 最新 |
+| `age` | 现代文件加密（X25519/SSH 密钥；age + age-keygen） | v1.3.2 | v1.3.2 | 3.5 MB | — | ✅ 最新 |
+| `age-keygen` | age 密钥生成（age-format identity/keypair） | v1.3.2 | v1.3.2 | 2.1 MB | — | ✅ 最新 |
+| `cascadia` | HTML CSS 选择器提取（stdin/stdout 管道） | v1.5.1 | v1.5.1 | 2.3 MB | — | ✅ 最新 |
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
-| `doggo` | DNS 查询（dig 现代替代，多协议） | v1.4.0 | v1.4.0 | — | 4.9 MB | ✅ 最新 |
+| `doggo` | DNS 查询（dig 现代替代，多协议） | v1.4.0 | v1.4.0 | 4.3 MB | — | ✅ 最新 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
-| `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | — | 1.2 MB | ✅ 最新 |
+| `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | — | ✅ 最新 |
 | `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
 | `micropython` | MicroPython 解释器（unix port，静态自编译） | v1.29.0 | default | 0.6 MB | 0.7 MB | ✅ 源码构建 |
 | `openssl` | openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套） |  | 4.3.3 | 0.9 MB | 0.8 MB | ✅ 源码构建 |
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | — | 1.0 MB | ✅ 最新 |
-| `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | — | 1.8 MB | ✅ 最新 |
+| `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | 1.0 MB | — | ✅ 最新 |
+| `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | — | ✅ 最新 |
 | `scp` | SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议） |  | 10.5p1 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
-| `sd` | 正则替换 | v1.1.0 | v1.1.0 | — | 0.8 MB | ✅ 最新 |
+| `sd` | 正则替换 | v1.1.0 | v1.1.0 | 0.7 MB | — | ✅ 最新 |
 | `sftp` | 交互式 SFTP 文件传输（自编译） |  | 10.5p1 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `socat` | 双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端） |  | 1.8.1.3 | 0.8 MB | 0.8 MB | ✅ 源码构建 |
 | `sponge` | 管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态） |  | 0.70 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
@@ -42,11 +42,11 @@
 | `ssh-agent` | SSH 密钥代理（免重复输入口令，自编译） |  | 10.5p1 | 0.7 MB | 0.7 MB | ✅ 源码构建 |
 | `ssh-keygen` | SSH 密钥生成/管理（自编译） |  | 10.5p1 | 0.8 MB | 0.7 MB | ✅ 源码构建 |
 | `ssh-keyscan` | 批量采集 SSH 主机公钥（自编译） |  | 10.5p1 | 0.8 MB | 0.8 MB | ✅ 源码构建 |
-| `su-exec` | 以指定用户身份执行命令（容器/脚本里的权限降级） | v0.3 | v0.3 | — | 0.0 MB | ✅ 最新 |
+| `su-exec` | 以指定用户身份执行命令（容器/脚本里的权限降级） | v0.3 | v0.3 | 0.0 MB | — | ✅ 最新 |
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 27 个工具 · arm64 合计 43.8 MB · amd64 合计 28.4 MB
+共 27 个工具 · arm64 合计 26.6 MB · amd64 合计 46.4 MB
 <!-- TABLE:END -->
 
 ## 安装
