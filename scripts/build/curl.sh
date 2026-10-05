@@ -7,6 +7,8 @@
 #                ②OpenSSH 客户端套件 7 件（ssh/scp/sftp/ssh-keygen/ssh-keyscan/
 #                  ssh-agent/ssh-add；配方 scripts/build/openssh.sh 随 chroot 带入）
 #       zlib/brotli/zstd/nghttp2 支持；不依赖任何运行时修复文件。
+# 同配方附带：③drill（ldns 1.9.2；DNS 查询 + DNSSEC 签名链验证；
+#              配方 scripts/build/drill.sh 随 chroot 带入，静态库复用本链的 LibreSSL）
 # 实测记录: 2026-10-05 于 CubeSandbox 沙箱
 #   （宿主 Ubuntu 22.04.5 容器 / root / x86_64 / 2 vCPU / 1.9GB RAM）
 #   guest = Alpine v3.22.6 minirootfs（musl, gcc 14.2.0）
@@ -303,6 +305,16 @@ if [ -f /build/socat.sh ]; then
 else
   echo "[WARN] /build/socat.sh 缺失，跳过 socat" | tee -a "$E"
 fi
+if [ -f /build/drill.sh ]; then
+  log "5" "drill（ldns：DNS 查询 / DNSSEC 验证，静态）"
+  if JOBS="${JOBS:-2}" sh /build/drill.sh; then
+    echo "[PASS] drill 构建与验收" | tee -a "$E"
+  else
+    echo "[FAIL] drill" | tee -a "$E"; FAILS=$((FAILS+1))
+  fi
+else
+  echo "[WARN] /build/drill.sh 缺失，跳过 drill" | tee -a "$E"
+fi
 
 say "INNER-SUMMARY: PASS=$(grep -c '^\[PASS\]' "$E" || true) FAIL=$FAILS"
 [ "$FAILS" = 0 ] || exit 1
@@ -318,6 +330,11 @@ if [ -f "$HERE/socat.sh" ]; then
   cp "$HERE/socat.sh" "$BUILD_DIR/socat.sh"
 else
   echo "WARN: scripts/build/socat.sh 不存在，本次跳过 socat 构建"
+fi
+if [ -f "$HERE/drill.sh" ]; then
+  cp "$HERE/drill.sh" "$BUILD_DIR/drill.sh"
+else
+  echo "WARN: scripts/build/drill.sh 不存在，本次跳过 drill 构建"
 fi
 
 INNER_RC=0
@@ -369,7 +386,7 @@ if [ -f "$BUILD_DIR/curl.static" ]; then
   sha256sum /tmp/curl.static
 fi
 # OpenSSH 套件 / socat 产物（若已构建）
-for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat; do
+for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat drill; do
   if [ -f "$BUILD_DIR/$b.static" ]; then
     cp "$BUILD_DIR/$b.static" "/tmp/$b.static"
     sha256sum "/tmp/$b.static"

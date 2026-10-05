@@ -1,4 +1,4 @@
-name: 构建 LibreSSL 套件（curl/openssl/ssh/socat 静态）
+name: 构建 LibreSSL 套件（curl/openssl/ssh/socat/drill 静态）
 
 # 为什么要自建：上游静态 curl（stunnel/static-curl）用 OpenSSL ≥3.5，
 # 其 TLS1.3 ClientHello 携带后量子签名算法，被 example.com / github.com /
@@ -19,6 +19,7 @@ on:
       - 'scripts/build/curl.sh'
       - 'scripts/build/openssh.sh'
       - 'scripts/build/socat.sh'
+      - 'scripts/build/drill.sh'
       - '.github/workflows/build-curl.yml'
   schedule:
     - cron: '52 3 * * *'        # 每日跟进（与 sync / build-source 错开）
@@ -112,6 +113,7 @@ jobs:
           pack /tmp/curl.static --version
           pack /tmp/openssl.static version
           pack /tmp/socat.static -V
+          pack /tmp/drill.static -v
           for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
             pack2 "/tmp/$b.static"
           done
@@ -129,7 +131,7 @@ jobs:
       - name: 落地到仓库
         run: |
           set -eu
-          for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat; do
+          for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat drill; do
             sudo mkdir -p "tools/$n/${{ matrix.arch }}"
             sudo cp "/tmp/$n.static" "tools/$n/${{ matrix.arch }}/$n"
             sudo chmod 755 "tools/$n/${{ matrix.arch }}/$n"
@@ -146,7 +148,7 @@ jobs:
           # rebase 冲突时生成物以本地产物为准（--theirs），杜绝冲突标记入库。
           git add -A
           if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-          git commit -m "build: LibreSSL 套件 curl+openssl+ssh+socat [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+          git commit -m "build: LibreSSL 套件 curl+openssl+ssh+socat+drill [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
           for i in 1 2 3 4 5; do
             if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
             echo "push 被拒，重试 $i/5…"
