@@ -18,14 +18,11 @@
 <!-- TABLE:START -->
 | 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |
 |---|---|---|---|---|---|---|
-| `age` | 现代文件加密（X25519/SSH 密钥；age + age-keygen） | v1.3.2 | v1.3.2 | 3.5 MB | 3.8 MB | ✅ 最新 |
-| `age-keygen` | age 密钥生成（age-format identity/keypair） | v1.3.2 | v1.3.2 | 2.1 MB | 2.3 MB | ✅ 最新 |
 | `cascadia` | HTML CSS 选择器提取（stdin/stdout 管道） | v1.5.1 | v1.5.1 | 2.3 MB | 2.5 MB | ✅ 最新 |
 | `chronic` | 命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固） |  | 1.3 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
 | `drill` | DNS 查询与 DNSSEC 签名链验证（dig 替代；全静态自编译，LibreSSL 后端） |  | 1.9.2 | 0.7 MB | 0.7 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
-| `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
 | `micropython` | MicroPython 解释器（unix port，静态自编译） | v1.29.0 | default | 0.6 MB | 0.7 MB | ✅ 源码构建 |
 | `openssl` | openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套） |  | 4.3.3 | 0.9 MB | 0.8 MB | ✅ 源码构建 |
@@ -48,7 +45,7 @@
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 29 个工具 · arm64 合计 23.1 MB · amd64 合计 24.1 MB
+共 26 个工具 · arm64 合计 17.5 MB · amd64 合计 18.0 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
