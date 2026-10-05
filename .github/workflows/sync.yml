@@ -1,0 +1,57 @@
+name: 跟随上游更新二进制
+
+on:
+  schedule:
+    # 每天 UTC 03:23 跑一次（错开整点，避开 GitHub 调度高峰）
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+    inputs:
+      arch:
+        description: 只同步指定架构（留空=全部）
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: 同步 ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false        # 一个架构失败不影响另一个
+      matrix:
+        arch: [arm64, amd64]  # x86_64 runner 上可同时产出两种架构
+    steps:
+      - uses: actions/checkout@v4
+
+      # 从上游 latest release 抓取 + 三判据验证 + 覆盖（幂等）
+      - name: 抓取并验证
+        env:
+          TARGET_ARCH: ${{ matrix.arch }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: sh scripts/sync-upstream.sh
+
+      - name: 体检
+        run: sh scripts/doctor.sh ${{ matrix.arch }}
+
+      - name: 提交变更
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --quiet; then
+            echo "无变更（上游没发新版）"
+          else
+            git add -A
+            git commit -m "chore: 跟随上游更新二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      # 上游发布后若判定失败，在这里能看到原因
+      - name: 摘要
+        if: always()
+        run: |
+          echo "### ${{ matrix.arch }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          ( cd tools/${{ matrix.arch }} && ls -l | awk 'NR>1{printf "%-10s %8.1f MB\n", $9, $5/1048576}' ) >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
