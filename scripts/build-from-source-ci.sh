@@ -27,8 +27,8 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）
-TOOLS="patch micropython tree sqlite3 zstd"
+# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge/stdbuf（moreutils/coreutils 小件）
+TOOLS="patch micropython tree sqlite3 zstd sponge stdbuf"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
@@ -40,7 +40,7 @@ for t in $TOOLS; do
   fi
 done
 
-( cd "tools/$ARCH" && sha256sum * > SHA256SUMS 2>/dev/null )
+( cd "tools/$ARCH" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS 2>/dev/null )
 
 echo
 echo "═══ $ARCH 完成：成功 $ok 个，失败:${failed:- 无} ═══"
