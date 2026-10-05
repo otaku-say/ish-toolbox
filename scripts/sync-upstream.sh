@@ -27,7 +27,9 @@ su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权
 gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
-yq|mikefarah/yq|YAML/JSON/XML 查询与就地编辑（jq 家族语法）
+age|FiloSottile/age|现代文件加密（X25519/SSH 密钥；age + age-keygen）
+age-keygen|FiloSottile/age|age 密钥生成（age-format identity/keypair）
+mlr|johnkerl/miller|CSV/TSV/JSON 数据切片（Miller）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -136,7 +138,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl"
+SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge stdbuf libstdbuf.so"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do
@@ -148,9 +150,9 @@ for f in "$T/$want_arch"/*; do
   fi
 done
 rm -f "$T/$want_arch"/*.upx "$T/$want_arch"/*.pre-upx 2>/dev/null
-for a in arm64 amd64; do
-  ( cd "$T/$a" && sha256sum * > SHA256SUMS 2>/dev/null )
-done
+# 只重算本架构目录的基线（跨 job 不共享文件 → 不再触发 autostash 冲突）；
+# 并排除 SHA256SUMS 自身，避免自引用行让 sha256sum -c 永远报 FAILED
+( cd "$T/$want_arch" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS 2>/dev/null )
 
 echo "完成：$want_arch 更新 $ok 个"
 [ "$ok" -eq 0 ] && exit 1
