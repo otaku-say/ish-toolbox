@@ -1,10 +1,12 @@
 #!/bin/sh
 # =============================================================================
-# curl.sh — LibreSSL 4.3.3 + curl 8.22.0 → 全静态 musl curl (按主机架构自动选择)
+# curl.sh — LibreSSL 4.3.3 + curl 8.22.0 + OpenSSH 客户端套件 → 全静态 musl
 # -----------------------------------------------------------------------------
 # 目标: 单文件全静态 curl（TLS=LibreSSL；CA 内嵌 --with-ca-embed；
-# 同配方附带产出：全静态 openssl CLI（LibreSSL apps；s_client / 证书 / 摘要）
-#       zlib/brotli/zstd/nghttp2 支持；不依赖任何运行时修复文件）。
+# 同配方附带产出：①全静态 openssl CLI（LibreSSL apps；s_client / 证书 / 摘要）
+#                ②OpenSSH 客户端套件 7 件（ssh/scp/sftp/ssh-keygen/ssh-keyscan/
+#                  ssh-agent/ssh-add；配方 scripts/build/openssh.sh 随 chroot 带入）
+#       zlib/brotli/zstd/nghttp2 支持；不依赖任何运行时修复文件。
 # 实测记录: 2026-10-05 于 CubeSandbox 沙箱
 #   （宿主 Ubuntu 22.04.5 容器 / root / x86_64 / 2 vCPU / 1.9GB RAM）
 #   guest = Alpine v3.22.6 minirootfs（musl, gcc 14.2.0）
@@ -19,6 +21,7 @@
 # 产物:
 #   /tmp/curl.static      —— 静态 curl（= chroot 内 /build/curl.static）
 #   /tmp/openssl.static   —— 静态 openssl CLI（= chroot 内 /build/openssl.static）
+#   /tmp/{ssh,scp,sftp,ssh-keygen,ssh-keyscan,ssh-agent,ssh-add}.static —— OpenSSH 套件
 #   /tmp/evidence.txt     —— 验收输出汇总（含各步输出与 sha256）
 #   /tmp/curl.sh  —— 本脚本自身副本
 #
@@ -189,6 +192,18 @@ cp "$BIN" /build/curl.static
 ls -l /build/curl.static
 sha256sum /build/curl.static
 
+# ---------------- [i3.5] OpenSSH 客户端套件（自含下载/构建/端到端验收） ----------------
+if [ -f /build/openssh.sh ]; then
+  log "3.5" "OpenSSH 客户端套件（静态）"
+  if JOBS="${JOBS:-2}" sh /build/openssh.sh; then
+    echo "[PASS] openssh 套件构建与端到端验收" | tee -a "$E"
+  else
+    echo "[FAIL] openssh 套件" | tee -a "$E"; FAILS=$((FAILS+1))
+  fi
+else
+  echo "[WARN] /build/openssh.sh 缺失，跳过 openssh" | tee -a "$E"
+fi
+
 # ---------------- [i4] 验收 ----------------
 log 6 "验收（输出同时写入 $E）"
 V=/build/curl.static
@@ -278,6 +293,14 @@ say "INNER-SUMMARY: PASS=$(grep -c '^\[PASS\]' "$E" || true) FAIL=$FAILS"
 [ "$FAILS" = 0 ] || exit 1
 INNER_EOF
 
+# openssh 配方随 chroot 带入（LibreSSL 就绪后由 inner 调用；产物即 /build/*.static）
+HERE="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$HERE/openssh.sh" ]; then
+  cp "$HERE/openssh.sh" "$BUILD_DIR/openssh.sh"
+else
+  echo "WARN: scripts/build/openssh.sh 不存在，本次跳过 openssh 构建"
+fi
+
 INNER_RC=0
 if [ "$MODE" = chroot ]; then
   chroot "$WORK" /bin/sh /build/inner.sh || INNER_RC=$?
@@ -326,12 +349,20 @@ if [ -f "$BUILD_DIR/curl.static" ]; then
   ls -l /tmp/curl.static
   sha256sum /tmp/curl.static
 fi
+# OpenSSH 套件产物（若已构建）
+for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
+  if [ -f "$BUILD_DIR/$b.static" ]; then
+    cp "$BUILD_DIR/$b.static" "/tmp/$b.static"
+    sha256sum "/tmp/$b.static"
+  fi
+done
 cp "$EV" /tmp/evidence.txt
 case "$0" in
   /tmp/curl.sh) ;;
   *) cp "$0" /tmp/curl.sh 2>/dev/null || true ;;
 esac
-echo "产物: /tmp/curl.static /tmp/openssl.static ; 证据: /tmp/evidence.txt ; 配方: /tmp/curl.sh"
+echo "产物: /tmp/curl.static /tmp/openssl.static /tmp/{ssh,scp,sftp,ssh-keygen,ssh-keyscan,ssh-agent,ssh-add}.static"
+echo "证据: /tmp/evidence.txt ; 配方: /tmp/curl.sh"
 [ "$F" = 0 ] && [ "$INNER_RC" = 0 ]
 
 # =============================================================================
