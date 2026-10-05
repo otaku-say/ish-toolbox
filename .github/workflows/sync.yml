@@ -91,5 +91,5 @@ jobs:
         run: |
           echo "### ${{ matrix.arch }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          ( cd tools/${{ matrix.arch }} && ls -l | awk 'NR>1{printf "%-10s %8.1f MB\n", $9, $5/1048576}' ) >> "$GITHUB_STEP_SUMMARY"
+          du -sh tools/*/${{ matrix.arch }} 2>/dev/null >> "$GITHUB_STEP_SUMMARY" || echo "(空)" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
