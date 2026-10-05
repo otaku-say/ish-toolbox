@@ -138,7 +138,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge stdbuf libstdbuf.so"
+SELF_BUILT="patch micropython tree sqlite3 curl zstd openssl sponge stdbuf libstdbuf.so ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do
