@@ -195,18 +195,6 @@ cp "$BIN" /build/curl.static
 ls -l /build/curl.static
 sha256sum /build/curl.static
 
-# ---------------- [i3.5] OpenSSH 客户端套件（自含下载/构建/端到端验收） ----------------
-if [ -f /build/openssh.sh ]; then
-  log "3.5" "OpenSSH 客户端套件（静态）"
-  if JOBS="${JOBS:-2}" sh /build/openssh.sh; then
-    echo "[PASS] openssh 套件构建与端到端验收" | tee -a "$E"
-  else
-    echo "[FAIL] openssh 套件" | tee -a "$E"; FAILS=$((FAILS+1))
-  fi
-else
-  echo "[WARN] /build/openssh.sh 缺失，跳过 openssh" | tee -a "$E"
-fi
-
 # ---------------- [i4] 验收 ----------------
 log 6 "验收（输出同时写入 $E）"
 V=/build/curl.static
@@ -292,15 +280,44 @@ ncert=$(echo | "$O" s_client -connect example.com:443 -servername example.com 2>
 say "s_client 证书链张数 = $ncert"
 [ "$ncert" -ge 1 ] 2>/dev/null && ok "s_client 可用" || bad "s_client 异常"
 
+# ---------------- [i5] 扩展套件（放在验收段之后：确保其 PASS/FAIL 计入证据与门禁） ----
+# 注意：绝不能放在 [i4] 之前 —— [i4] 开头 `: > "$E"` 会清空证据文件、FAILS 也会被
+# 重置为 0，导致扩展套件的失败被静默吞掉、整轮误判绿色（2026-10 实际踩过）。
+if [ -f /build/openssh.sh ]; then
+  log "5" "OpenSSH 客户端套件（静态）"
+  if JOBS="${JOBS:-2}" sh /build/openssh.sh; then
+    echo "[PASS] openssh 套件构建与端到端验收" | tee -a "$E"
+  else
+    echo "[FAIL] openssh 套件" | tee -a "$E"; FAILS=$((FAILS+1))
+  fi
+else
+  echo "[WARN] /build/openssh.sh 缺失，跳过 openssh" | tee -a "$E"
+fi
+if [ -f /build/socat.sh ]; then
+  log "5" "socat（TLS 全功能，静态）"
+  if JOBS="${JOBS:-2}" sh /build/socat.sh; then
+    echo "[PASS] socat 构建与验收" | tee -a "$E"
+  else
+    echo "[FAIL] socat" | tee -a "$E"; FAILS=$((FAILS+1))
+  fi
+else
+  echo "[WARN] /build/socat.sh 缺失，跳过 socat" | tee -a "$E"
+fi
+
 say "INNER-SUMMARY: PASS=$(grep -c '^\[PASS\]' "$E" || true) FAIL=$FAILS"
 [ "$FAILS" = 0 ] || exit 1
 INNER_EOF
 
-# openssh 配方随 chroot 带入（LibreSSL 就绪后由 inner 调用；产物即 /build/*.static）
+# openssh / socat 配方随 chroot 带入（LibreSSL 就绪后由 inner 调用；产物即 /build/*.static）
 if [ -f "$HERE/openssh.sh" ]; then
   cp "$HERE/openssh.sh" "$BUILD_DIR/openssh.sh"
 else
   echo "WARN: scripts/build/openssh.sh 不存在，本次跳过 openssh 构建"
+fi
+if [ -f "$HERE/socat.sh" ]; then
+  cp "$HERE/socat.sh" "$BUILD_DIR/socat.sh"
+else
+  echo "WARN: scripts/build/socat.sh 不存在，本次跳过 socat 构建"
 fi
 
 INNER_RC=0
@@ -351,8 +368,8 @@ if [ -f "$BUILD_DIR/curl.static" ]; then
   ls -l /tmp/curl.static
   sha256sum /tmp/curl.static
 fi
-# OpenSSH 套件产物（若已构建）
-for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
+# OpenSSH 套件 / socat 产物（若已构建）
+for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat; do
   if [ -f "$BUILD_DIR/$b.static" ]; then
     cp "$BUILD_DIR/$b.static" "/tmp/$b.static"
     sha256sum "/tmp/$b.static"
@@ -363,7 +380,7 @@ case "$0" in
   /tmp/curl.sh) ;;
   *) cp "$0" /tmp/curl.sh 2>/dev/null || true ;;
 esac
-echo "产物: /tmp/curl.static /tmp/openssl.static /tmp/{ssh,scp,sftp,ssh-keygen,ssh-keyscan,ssh-agent,ssh-add}.static"
+echo "产物: /tmp/curl.static /tmp/openssl.static /tmp/{ssh,scp,sftp,ssh-keygen,ssh-keyscan,ssh-agent,ssh-add}.static /tmp/socat.static"
 echo "证据: /tmp/evidence.txt ; 配方: /tmp/curl.sh"
 [ "$F" = 0 ] && [ "$INNER_RC" = 0 ]
 
