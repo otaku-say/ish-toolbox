@@ -15,6 +15,7 @@ on:
       - 'scripts/sync-upstream.sh'
       - 'MANIFEST.extra.tsv'     # 自编译工具元数据变更时，MANIFEST 也要重新合并
       - 'scripts/gen-table.sh'
+      - 'scripts/doctor.sh'
       - '.github/workflows/sync.yml'
 
 permissions:
