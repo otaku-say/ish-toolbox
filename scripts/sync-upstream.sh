@@ -35,6 +35,7 @@ kibi|ilai-deutel/kibi|极简终端编辑器
 bottom|ClementTsang/bottom|终端 TUI 监控
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
 step|smallstep/cli|现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
+binsider|orhun/binsider|ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
