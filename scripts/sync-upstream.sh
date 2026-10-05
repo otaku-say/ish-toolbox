@@ -119,7 +119,7 @@ while IFS='|' read -r cmd repo desc; do
   # 必须用 tab 分隔——gen-table.sh 按 tab 读；写成竖线会让整行被当成第一列（踩过）
   printf '%s\t%s\t%s\t%s\n' "$cmd" "$repo" "$tag" "$desc" >> "$W/manifest.part"
   ok=$((ok+1))
-done
+done < "$W/list"
 
 if [ -s "$W/manifest.part" ]; then
   { printf 'tool\trepo\tversion\tdescription\n'; sort "$W/manifest.part"; } > "$ROOT/MANIFEST.tsv"
