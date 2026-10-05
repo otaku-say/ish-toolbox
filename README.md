@@ -13,22 +13,28 @@
 
 ## 工具清单
 
-| 命令 | 替代 | 用途 | 上游 |
-|---|---|---|---|
-| `bat` | cat | 语法高亮看源码；`bat -l diff` 兼做 diff 渲染 | sharkdp/bat |
-| `rg` | grep | 高速递归搜索，尊重 .gitignore | BurntSushi/ripgrep |
-| `fd` | find | 按模式找文件 | sharkdp/fd |
-| `fzf` | — | 模糊选择列表 / 历史 / 文件 | junegunn/fzf |
-| `sd` | sed | 正则替换，免转义斜杠 | chmln/sd |
-| `xh` | curl | HTTPie 风格 HTTP 客户端 | ducaale/xh |
-| `zoxide` | cd | 按访问频次智能跳转目录 | ajeetdsouza/zoxide |
-| `dust` | du | 树状显示目录占用 | bootandy/dust |
-| `ouch` | tar / unzip | 统一解压，自动识别格式 | ouch-org/ouch |
-| `gping` | ping | 延迟折线图，多目标对比 | orf/gping |
-| `age` | gpg | 文件加密，支持直接用 SSH 密钥 | FiloSottile/age |
-| `kibi` | nano | Rust 写的极简编辑器（**0.2MB**） | ilai-deutel/kibi |
-| `bottom` | top / ps | 终端 TUI 监控 | ClementTsang/bottom |
-| `riff` | — | diff 着色 | walles/riff |
+<!-- 下表由 scripts/gen-table.sh 自动生成（上游版本 / 仓库版本 / 双架构体积） -->
+
+<!-- TABLE:START -->
+| 工具 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |
+|---|---|---|---|---|---|
+| `age` | v1.3.2 | v1.3.2 | 6.2 MB | 6.7 MB | ✅ 最新 |
+| `bat` | v0.26.1 | v0.26.1 | 5.8 MB | 6.6 MB | ✅ 最新 |
+| `bottom` | 0.14.9 | 0.14.9 | 4.1 MB | 5.0 MB | ✅ 最新 |
+| `dust` | v1.2.6 | v1.2.6 | 2.3 MB | 2.9 MB | ✅ 最新 |
+| `fd` | v10.5.0 | v10.5.0 | 2.9 MB | 3.5 MB | ✅ 最新 |
+| `fzf` | v0.74.4 | v0.74.4 | 4.9 MB | 5.3 MB | ✅ 最新 |
+| `gping` | gping-v1.21.0 | gping-v1.21.0 | 3.3 MB | 3.6 MB | ✅ 最新 |
+| `kibi` | v0.3.3 | v0.3.3 | 0.2 MB | 0.2 MB | ✅ 最新 |
+| `ouch` | 0.8.3 | 0.8.3 | 5.1 MB | 6.0 MB | ✅ 最新 |
+| `rg` | 15.2.0 | 15.2.0 | 4.3 MB | 5.2 MB | ✅ 最新 |
+| `riff` | 3.6.2 | 3.6.2 | 7.2 MB | 7.0 MB | ✅ 最新 |
+| `sd` | v1.1.0 | v1.1.0 | 1.9 MB | 2.4 MB | ✅ 最新 |
+| `xh` | v0.26.2 | v0.26.2 | 8.4 MB | 10.6 MB | ✅ 最新 |
+| `zoxide` | v0.10.0 | v0.10.0 | 1.0 MB | 1.2 MB | ✅ 最新 |
+
+共 14 个工具 · arm64 合计 57.6 MB · amd64 合计 66.1 MB
+<!-- TABLE:END -->
 
 ## 安装
 

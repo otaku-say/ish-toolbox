@@ -1,15 +1,15 @@
 tool	repo	version	description
-age|FiloSottile/age|v1.3.2|文件加密
-bat|sharkdp/bat|v0.26.1|语法高亮看源码，兼做 diff 渲染
-bottom|ClementTsang/bottom|0.14.9|终端 TUI 监控
-dust|bootandy/dust|v1.2.6|目录占用树
-fd|sharkdp/fd|v10.5.0|按模式找文件
-fzf|junegunn/fzf|v0.74.4|模糊选择列表
-gping|orf/gping|gping-v1.21.0|ping 延迟折线图
-kibi|ilai-deutel/kibi|v0.3.3|极简终端编辑器
-ouch|ouch-org/ouch|0.8.3|统一解压
-rg|BurntSushi/ripgrep|15.2.0|高速递归搜索
-riff|walles/riff|3.6.2|diff 着色
-sd|chmln/sd|v1.1.0|正则替换
-xh|ducaale/xh|v0.26.2|HTTP 客户端
-zoxide|ajeetdsouza/zoxide|v0.10.0|目录智能跳转
+age	FiloSottile/age	v1.3.2	文件加密
+bat	sharkdp/bat	v0.26.1	语法高亮看源码，兼做 diff 渲染
+bottom	ClementTsang/bottom	0.14.9	终端 TUI 监控
+dust	bootandy/dust	v1.2.6	目录占用树
+fd	sharkdp/fd	v10.5.0	按模式找文件
+fzf	junegunn/fzf	v0.74.4	模糊选择列表
+gping	orf/gping	gping-v1.21.0	ping 延迟折线图
+kibi	ilai-deutel/kibi	v0.3.3	极简终端编辑器
+ouch	ouch-org/ouch	0.8.3	统一解压
+rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
+riff	walles/riff	3.6.2	diff 着色
+sd	chmln/sd	v1.1.0	正则替换
+xh	ducaale/xh	v0.26.2	HTTP 客户端
+zoxide	ajeetdsouza/zoxide	v0.10.0	目录智能跳转

@@ -96,7 +96,8 @@ while IFS='|' read -r cmd repo desc; do
   cp "$B" "$T/$want_arch/$cmd" && chmod +x "$T/$want_arch/$cmd"
   printf '  ✓ %-8s %-12s %6s MB\n' "$cmd" "$tag" \
     "$(awk -v s=$(wc -c < "$T/$want_arch/$cmd") 'BEGIN{printf "%.1f", s/1048576}')"
-  echo "$cmd|$repo|$tag|$desc" >> "$W/manifest.part"
+  # 必须用 tab 分隔——gen-table.sh 按 tab 读；写成竖线会让整行被当成第一列（踩过）
+  printf '%s\t%s\t%s\t%s\n' "$cmd" "$repo" "$tag" "$desc" >> "$W/manifest.part"
   ok=$((ok+1))
 done
 

@@ -1,0 +1,80 @@
+name: 从源码构建静态二进制
+
+# 上游不给 arm64 产物的工具，在这里编译 —— 免费、可复现、产物直接进仓库。
+# 覆盖：fzy / patch / nnn / b3sum / jaq / ncdu（每个都 × arm64 + amd64）
+
+on:
+  workflow_dispatch:              # 手动触发
+  push:
+    paths:
+      - 'scripts/build-from-source-ci.sh'   # 编译脚本改动时自动跑
+  schedule:
+    - cron: '37 3 * * 1'          # 每周一 UTC 03:37 跟一次（拿上游新提交）
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-source-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 构建 ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, amd64]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 系统依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools autoconf automake libtool pkg-config libncurses-dev
+
+      - name: Rust 工具链
+        run: |
+          curl -sSf https://sh.rustup.rs -o /tmp/ru.sh
+          sh /tmp/ru.sh -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: musl 交叉工具链（arm64 需要）
+        if: matrix.arch == 'arm64'
+        run: |
+          curl -fsSL --max-time 600 -o /tmp/musl.tgz https://musl.cc/aarch64-linux-musl-cross.tgz
+          sudo tar xzf /tmp/musl.tgz -C /opt
+          echo "/opt/aarch64-linux-musl-cross/bin" >> "$GITHUB_PATH"
+
+      - name: 编译并验证
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          bash scripts/build-from-source-ci.sh
+          echo "### ${{ matrix.arch }} 构建结果" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          ls -l "tools/${{ matrix.arch }}" | awk 'NR>1{printf "%-10s %8.2f MB\n", $9, $5/1048576}' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 提交变更
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # 让产物带上可执行位（runner 上 chmod 有效，直接记录 mode）
+          git add -A
+          if git diff --cached --quiet; then
+            echo "无变更（产物与仓库一致）"
+          else
+            git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: 上传产物（便于人工检查）
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-${{ matrix.arch }}
+          path: tools/${{ matrix.arch }}/
+          retention-days: 14
