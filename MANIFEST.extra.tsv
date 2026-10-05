@@ -7,4 +7,4 @@ curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
 openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
-stdbuf	coreutils（自编译）	9.12	调整子进程缓冲策略（配套 libstdbuf.so 同目录，行为如 GNU stdbuf）
+stdbuf	ish-toolbox 自实现（GNU 语义兼容）	1.0	LD_PRELOAD 调整子进程缓冲（-i/-o/-e；配套 libstdbuf.so 同目录）
