@@ -77,9 +77,20 @@ fetch() {  # <owner/repo> <dir>
   local d="/tmp/build/$2"
   [ -d "$d" ] && return 0
   for br in main master; do
-    curl -fsSL --max-time 180 "https://github.com/$1/archive/refs/heads/$br.tar.gz" -o /tmp/x.tgz && {
+    curl -fsSL --max-time 180 "https://github.com/$1/archive/refs/heads/$br.tar.gz" -o /tmp/x.tgz 2>/dev/null && {
       tar xzf /tmp/x.tgz -C /tmp/build && mv "/tmp/build/$2-$br" "$d" 2>/dev/null && return 0; }
   done
+  echo "  ! 下载失败 $1"; return 1
+}
+
+# 官方 release tarball：**自带 configure**，不需要 autoreconf
+# （autoreconf 在 CI 上会因 m4 宏问题失败，实测 patch/ncdu 都栽在这）
+fetch_url() {  # <url> <解压出的目录名> <目标名>
+  local d="/tmp/build/$3"
+  [ -d "$d" ] && return 0
+  curl -fsSL --max-time 240 "$1" -o /tmp/x.tgz 2>/dev/null \
+    && tar xzf /tmp/x.tgz -C /tmp/build 2>/dev/null \
+    && mv "/tmp/build/$2" "$d" 2>/dev/null && return 0
   echo "  ! 下载失败 $1"; return 1
 }
 
@@ -111,48 +122,61 @@ if fetch jhawthorn/fzy fzy; then
     || echo "  ✗ fzy: $(head -3 /tmp/e1 2>/dev/null | tr '\n' ' ')"
 fi
 
-# ── patch：autotools（patchutils/patch 的 tarball 是 404，换 GNU 官方镜像）
-if fetch gnu-mirror-unofficial/patch patch; then
-  ( cd /tmp/build/patch && autoreconf -fi >/tmp/ar 2>&1
-    CC="$CROSS_CC" ./configure --host="$T" --disable-dependency-tracking --disable-docs >/tmp/c2 2>&1 \
+# ── patch：用 GNU 官方 release tarball（自带 configure）───────────
+if fetch_url "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.gz" patch-2.8 patch; then
+  ( cd /tmp/build/patch && CC="$CROSS_CC" ./configure --host="$T" \
+      --disable-dependency-tracking >/tmp/c2 2>&1 \
     && make -j"$(nproc)" >/tmp/m2 2>&1 && cp src/patch /tmp/build/patch.bin ) \
     && install_verified /tmp/build/patch.bin patch \
     || echo "  ✗ patch: $(grep -iE 'error|not found' /tmp/m2 /tmp/c2 2>/dev/null | head -1)"
 fi
 
-# ── nnn：Makefile 直编；musl 无 fts.h → O_NOFTS；ncurses 用前置编好的 musl 版 ──
+# ── nnn：需要 fts（musl 没有）→ 先编 musl-fts ──────────────────
 if fetch jarun/nnn nnn; then
+  if [ ! -f /tmp/fts-prefix/lib/libfts.a ]; then
+    echo "  → 编译 musl-fts（nnn 依赖 fts.h，musl 不带）"
+    if fetch pullmoll/musl-fts musl-fts; then
+      ( cd /tmp/build/musl-fts && ./bootstrap.sh >/tmp/ftsb 2>&1 || autoreconf -fi >>/tmp/ftsb 2>&1
+        CC="$CROSS_CC" ./configure --host="$T" --prefix=/tmp/fts-prefix >/tmp/ftsc 2>&1 \
+        && make -j"$(nproc)" >/tmp/ftsm 2>&1 && make install >/dev/null 2>&1 ) \
+        && echo "  ✓ musl-fts 就绪" || echo "  ! musl-fts 失败: $(tail -2 /tmp/ftsc 2>/dev/null | head -1)"
+    fi
+  fi
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
-    make nnn CC="$CROSS_CC" O_NOFTS=1 O_NORL=1 O_STATIC=1 \
-         CPPFLAGS="$NCINC" LDLIBS="$NCLIB -lncursesw" >/tmp/m3 2>&1 \
+    make nnn CC="$CROSS_CC" O_NORL=1 O_STATIC=1 \
+         CPPFLAGS="$NCINC -I/tmp/fts-prefix/include" \
+         LDLIBS="$NCLIB -L/tmp/fts-prefix/lib -lncursesw -lfts" >/tmp/m3 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
     || echo "  ✗ nnn: $(grep -iE 'error|fatal|not found' /tmp/m3 2>/dev/null | head -1)"
 fi
 
 # ── b3sum：独立 crate（根目录是 blake3 包，不是 workspace）────────
+# arm64 上用 pure 模式：Zig 作为 CC 编 C 加速部分会失败
+# （build script 报 "failed to run custom build command for blake3"），
+# 纯 Rust 路径没有任何 C 依赖，产物体积也更小；代价是少了 SIMD 加速。
 if fetch BLAKE3-team/BLAKE3 BLAKE3; then
+  if [ "$ARCH" = arm64 ]; then B3F="--no-default-features --features std,pure"; else B3F=""; fi
   ( cd /tmp/build/BLAKE3/b3sum && CARGO_PROFILE_RELEASE_PANIC=abort \
-    cargo build --release --target "$T" >/tmp/m4 2>&1 \
+    cargo build --release --target "$T" $B3F >/tmp/m4 2>&1 \
     && cp "target/$T/release/b3sum" /tmp/build/b3sum.bin ) \
     && install_verified /tmp/build/b3sum.bin b3sum \
-    || echo "  ✗ b3sum: $(grep -iE '^error' /tmp/m4 2>/dev/null | head -1)"
+    || echo "  ✗ b3sum: $(grep -iE '^error|could not' /tmp/m4 2>/dev/null | head -1)"
 fi
 
-# ── jaq：Rust ────────────────────────────────────────────────
+# ── jaq：Rust（arm64 同样避开 mimalloc 的 C 依赖）────────────────
 if fetch 01mf02/jaq jaq; then
-  ( cd /tmp/build/jaq && cargo build --release --target "$T" --bin jaq >/tmp/m5 2>&1 \
+  if [ "$ARCH" = arm64 ]; then JF="--no-default-features"; else JF=""; fi
+  ( cd /tmp/build/jaq && cargo build --release --target "$T" --bin jaq $JF >/tmp/m5 2>&1 \
     && cp "target/$T/release/jaq" /tmp/build/jaq.bin ) \
     && install_verified /tmp/build/jaq.bin jaq \
-    || echo "  ✗ jaq: $(grep -iE '^error' /tmp/m5 2>/dev/null | head -1)"
+    || echo "  ✗ jaq: $(grep -iE '^error|could not' /tmp/m5 2>/dev/null | head -1)"
 fi
 
-# ── ncdu：用前置编好的 musl ncurses ──────────────────────────────
-if fetch rofl0r/ncdu ncdu; then
-  ( cd /tmp/build/ncdu && autoreconf -fi >/dev/null 2>&1
-    CC="$CROSS_CC" ./configure --host="$T" \
-      CPPFLAGS="-I/tmp/nc-prefix/include" LDFLAGS="-L/tmp/nc-prefix/lib" \
-      --disable-dependency-tracking >/tmp/c6 2>&1 \
+# ── ncdu：官方 release tarball（自带 configure）─────────────────
+if fetch_url "https://dev.yorhel.nl/download/ncdu-2.7.tar.gz" ncdu-2.7 ncdu; then
+  ( cd /tmp/build/ncdu && CC="$CROSS_CC" ./configure --host="$T" \
+      CPPFLAGS="$NCINC" LDFLAGS="$NCLIB" --disable-dependency-tracking >/tmp/c6 2>&1 \
     && make -j"$(nproc)" >/tmp/m6 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \
     || echo "  ✗ ncdu: $(grep -iE 'error|not found' /tmp/m6 /tmp/c6 2>/dev/null | head -1)"
