@@ -65,9 +65,9 @@ jobs:
           if git diff --cached --quiet; then echo "无变更"; exit 0; fi
           git commit -m "build: 跟随上游更新二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
           for i in 1 2 3 4 5; do
-            if git push; then echo "push 成功（第 $i 次）"; exit 0; fi
+            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
             echo "push 被拒，重试 $i/5…"
-            git fetch origin main
+            git fetch origin main >/dev/null 2>&1
             if ! git rebase origin/main >/dev/null 2>&1; then
               echo "rebase 冲突：生成物以本地产物为准"
               for f in $(git diff --name-only --diff-filter=U); do git checkout --theirs -- "$f" 2>/dev/null || true; done
