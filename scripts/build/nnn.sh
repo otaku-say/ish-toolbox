@@ -11,8 +11,10 @@
 
 if fetch jarun/nnn nnn; then
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
+    # nnn 的链接命令是 `$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) ... $(LDLIBS)`
+    # → LDFLAGS 必须显式传，否则 arm64 的 Zig 会产出动态可执行文件（PT_INTERP）
     make nnn CC="$CROSS_CC" O_NORL=1 \
-         CFLAGS="$CSIZE" \
+         CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
          CPPFLAGS="-DNORL $NCINC $FTSINC" \
          LDLIBS="$NCLIB $FTSLIB -lncursesw -Wl,--gc-sections" >/tmp/m-nnn 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \

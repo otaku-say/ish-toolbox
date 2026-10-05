@@ -18,5 +18,5 @@ if fetch_url "https://dev.yorhel.nl/download/$VER" "${VER%.tar.gz}" ncdu; then
          --disable-dependency-tracking >/tmp/c-ncdu 2>&1 \
     && make -j"$(nproc)" >/tmp/m-ncdu 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \
-    || echo "  ✗ ncdu: $(grep -iE 'error|not found' /tmp/m-ncdu 2>/dev/null | head -1 | cut -c1-80) | $(grep -iE 'error|not found' /tmp/c-ncdu 2>/dev/null | head -1 | cut -c1-80)"
+    || echo "  ✗ ncdu: conf=$(grep -iE 'error|cannot|not found' /tmp/c-ncdu 2>/dev/null | head -1 | cut -c1-70) make=$(grep -iE 'error|cannot|not found' /tmp/m-ncdu 2>/dev/null | head -1 | cut -c1-60)"
 fi

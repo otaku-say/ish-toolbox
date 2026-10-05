@@ -9,16 +9,21 @@
 if [ ! -f /tmp/nc-prefix/lib/libncursesw.a ]; then
   echo "  → 编译 musl 版 ncurses（$ARCH）"
   NCV=$(latest_from_listing "https://invisible-mirror.net/archives/ncurses/" 'ncurses-[0-9]+\.[0-9]+\.tar\.gz')
-  [ -z "$NCV" ] && NCV=ncurses-6.4.tar.gz
-  echo "    ncurses 最新: $NCV"
-  fetch_url "https://invisible-mirror.net/archives/ncurses/$NCV" "${NCV%.tar.gz}" ncsrc \
-    && ( cd /tmp/build/ncsrc \
-         && ./configure --host="$T" CC="$CROSS_CC" CFLAGS="-Os" \
-              --prefix=/tmp/nc-prefix --without-shared --without-debug --without-ada \
-              --enable-widec --without-manpages --without-tests >/tmp/c-nc 2>&1 \
-         && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/dev/null 2>&1 ) \
-    && echo "  ✓ ncurses(musl) 就绪" \
-    || echo "  ! ncurses 失败: $(tail -2 /tmp/c-nc 2>/dev/null | head -1)"
+  # 自动回退：先试上游最新，交叉编译失败则退到已知可用的 6.4
+  # （实测 6.6 在本 CI 的交叉编译环境下会失败，但下载本身是好的）
+  for cand in "$NCV" "ncurses-6.4.tar.gz"; do
+    [ -z "$cand" ] && continue
+    rm -rf /tmp/build/ncsrc
+    if fetch_url "https://invisible-mirror.net/archives/ncurses/$cand" "${cand%.tar.gz}" ncsrc \
+       && ( cd /tmp/build/ncsrc \
+            && ./configure --host="$T" CC="$CROSS_CC" CFLAGS="-Os" \
+                 --prefix=/tmp/nc-prefix --without-shared --without-debug --without-ada \
+                 --enable-widec --without-manpages --without-tests >/tmp/c-nc 2>&1 \
+            && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/dev/null 2>&1 ); then
+      echo "  ✓ ncurses(musl) 就绪（$cand）"; break
+    fi
+    echo "  ! $cand 编译失败，回退重试…"
+  done
 fi
 export NCINC="-I/tmp/nc-prefix/include -I/tmp/nc-prefix/include/ncursesw"
 export NCLIB="-L/tmp/nc-prefix/lib"
