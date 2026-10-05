@@ -62,7 +62,13 @@ for f in "$D"/*; do
   _n="$(basename "$f")"
   case "$_n" in
     "SHA256SUMS.$A"|"SHA256SUMS.arm64"|"SHA256SUMS.amd64") continue ;;
-    "arm64"|"amd64") echo "  ✗ 旧布局目录残留：$_n"; bad=$((bad+1)); continue ;;
+    "arm64"|"amd64")
+      if [ "$_n" = "$A" ]; then
+        echo "  ✗ 旧布局目录残留：$_n"; bad=$((bad+1))
+      else
+        echo "  ℹ 对侧架构旧目录（由对侧 job 清理）：$_n"
+      fi
+      continue ;;
   esac
   [ -d "$f" ] && continue
   echo "  ✗ 旧布局散文件残留：$_n"; bad=$((bad+1))
