@@ -27,8 +27,8 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3（上游只发源码）
-TOOLS="patch micropython tree sqlite3"
+# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）
+TOOLS="patch micropython tree sqlite3 zstd"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
