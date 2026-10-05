@@ -1,18 +1,22 @@
-name: 构建 curl + openssl（LibreSSL 静态）
+name: 构建 curl + openssl + ssh（LibreSSL 静态）
 
 # 为什么要自建：上游静态 curl（stunnel/static-curl）用 OpenSSL ≥3.5，
 # 其 TLS1.3 ClientHello 携带后量子签名算法，被 example.com / github.com /
 # cloudflare.com 等服务器拒绝握手（2026-10 实测）。本流水线改用 LibreSSL
 # 后端在 Alpine 环境自建：产物原生无问题（不依赖任何运行时修复文件），
-# 并内嵌 CA 证书包（--with-ca-embed）。同配方附带全静态 openssl CLI
-# （s_client / 证书 / 摘要等，agent 排障常用）。
-# 配方：scripts/build/curl.sh（Alpine chroot，同架构原生执行，含 10 项验收）
+# 并内嵌 CA 证书包（--with-ca-embed）。同配方附带：
+#   · 全静态 openssl CLI（s_client / 证书 / 摘要等）
+#   · OpenSSH 客户端套件 7 件（ssh/scp/sftp/ssh-keygen/ssh-keyscan/ssh-agent/
+#     ssh-add；全静态 + LibreSSL 后端；含本机 sshd 端到端验收）
+# 配方：scripts/build/curl.sh（Alpine chroot，同架构原生执行）
+#       scripts/build/openssh.sh（同一 chroot 内、LibreSSL 就绪后构建）
 
 on:
   workflow_dispatch:
   push:
     paths:
       - 'scripts/build/curl.sh'
+      - 'scripts/build/openssh.sh'
       - '.github/workflows/build-curl.yml'
   schedule:
     - cron: '52 3 * * *'        # 每日跟进（与 sync / build-source 错开）
@@ -61,15 +65,15 @@ jobs:
             echo "UPX 下载失败，本次跳过压缩"
           fi
 
-      - name: 构建（Alpine chroot + LibreSSL + curl + openssl，含 10 项验收）
+      - name: 构建（Alpine chroot + LibreSSL：curl / openssl / OpenSSH 套件，含验收）
         run: |
           sudo bash scripts/build/curl.sh
-          sudo chown "$(id -u):$(id -g)" /tmp/curl.static /tmp/openssl.static /tmp/evidence.txt
+          sudo chown "$(id -u):$(id -g)" /tmp/*.static /tmp/evidence.txt 2>/dev/null || true
 
-      - name: UPX 压缩 + 三判据 + 冒烟（curl 与 openssl 各一套）
+      - name: UPX 压缩 + 三判据 + 冒烟（curl / openssl / ssh 套件）
         run: |
           set -eu
-          pack() { # $1=二进制 $2=version 子命令
+          pack() { # $1=二进制 $2=version 子命令（curl/openssl 这类有版本旗标）
             BIN="$1"; VC="$2"
             [ -f "$BIN" ] || { echo "✗ 缺 $BIN"; exit 1; }
             if command -v upx >/dev/null 2>&1; then
@@ -86,25 +90,49 @@ jobs:
             em=$(od -An -tx1 -j18 -N1 "$BIN" | tr -d ' \n')
             [ "$em" = "${{ matrix.em }}" ] || { echo "✗ $BIN 架构 $em ≠ ${{ matrix.em }}"; exit 1; }
           }
+          pack2() { # $1=二进制（无版本旗标：冒烟 = 可执行且 -V 必有输出）
+            BIN="$1"
+            [ -f "$BIN" ] || { echo "✗ 缺 $BIN"; exit 1; }
+            if command -v upx >/dev/null 2>&1; then
+              cp "$BIN" "$BIN.pre"
+              if upx --best -q "$BIN" && out=$( { timeout 5 "$BIN" -V 2>&1 || true; } | head -1 ) && [ -n "$out" ]; then
+                echo "UPX ok: $BIN $(wc -c < "$BIN") bytes（冒烟: $out）"
+              else
+                mv "$BIN.pre" "$BIN"; echo "UPX 失败/跑不通 → 回退: $BIN"
+              fi
+              rm -f "$BIN.pre"
+            fi
+            if readelf -l "$BIN" | grep -q INTERP; then echo "✗ $BIN 有 PT_INTERP"; exit 1; fi
+            if readelf -d "$BIN" | grep -q NEEDED; then echo "✗ $BIN 有 NEEDED"; exit 1; fi
+            em=$(od -An -tx1 -j18 -N1 "$BIN" | tr -d ' \n')
+            [ "$em" = "${{ matrix.em }}" ] || { echo "✗ $BIN 架构 $em ≠ ${{ matrix.em }}"; exit 1; }
+          }
           pack /tmp/curl.static --version
           pack /tmp/openssl.static version
+          for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
+            pack2 "/tmp/$b.static"
+          done
           /tmp/curl.static -sS -o /dev/null -w 'curl 冒烟 example.com = %{http_code}\n' https://example.com/
           /tmp/openssl.static version
           n=$(echo | /tmp/openssl.static s_client -connect example.com:443 -servername example.com 2>&1 | grep -c 'BEGIN CERTIFICATE' || true)
           echo "openssl s_client 证书链张数 = $n"
           [ "$n" -ge 1 ] || { echo "✗ s_client 冒烟失败"; exit 1; }
+          /tmp/ssh.static -V
+          /tmp/ssh-keygen.static -q -t ed25519 -f /tmp/ci_k -N '' && /tmp/ssh-keygen.static -lf /tmp/ci_k.pub
+          n=$(timeout 20 /tmp/ssh-keyscan.static -T 10 github.com 2>/dev/null | grep -c 'ssh-' || true)
+          echo "ssh-keyscan github.com 条目 = $n（网络受限可忽略；本机 sshd 端到端已在 chroot 验收）"
 
       - name: 落地到仓库
         run: |
           set -eu
           D="tools/${{ matrix.arch }}"
-          for n in curl openssl; do
+          for n in curl openssl ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
             sudo cp "/tmp/$n.static" "$D/$n"
             sudo chmod 755 "$D/$n"
             sudo chown "$(id -u):$(id -g)" "$D/$n"
           done
           ( cd "$D" && sha256sum $(ls | grep -v '^SHA256SUMS$') > SHA256SUMS )
-          ls -l "$D/curl" "$D/openssl"
+          ls -l "$D" | head -40
 
       - name: 提交变更
         run: |
@@ -114,7 +142,7 @@ jobs:
           # rebase 冲突时生成物以本地产物为准（--theirs），杜绝冲突标记入库。
           git add -A
           if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-          git commit -m "build: curl+openssl (LibreSSL 静态) [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
+          git commit -m "build: LibreSSL 套件 curl+openssl+ssh [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
           for i in 1 2 3 4 5; do
             if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
             echo "push 被拒，重试 $i/5…"
@@ -132,9 +160,8 @@ jobs:
       - name: 上传产物与证据
         uses: actions/upload-artifact@v4
         with:
-          name: curl-openssl-${{ matrix.arch }}
+          name: libressl-suite-${{ matrix.arch }}
           path: |
-            tools/${{ matrix.arch }}/curl
-            tools/${{ matrix.arch }}/openssl
+            tools/${{ matrix.arch }}/*
             /tmp/evidence.txt
           retention-days: 14
