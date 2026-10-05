@@ -4,8 +4,8 @@
 # 上游：01mf02/jaq（取 GitHub latest release 的 tag 源码包；失败回落 v3.1.1）
 # arm64 用 --no-default-features 避开 mimalloc 的 C 依赖
 #   （Zig 编 libmimalloc-sys 失败；纯 Rust 分配器零 C 依赖 —— 历史踩坑记录）
-# 与 gojq 的分工（二选一结论见 SKILL.md）：jaq 快、现代；
-#   gojq 保留为默认（模块系统 + 大整数无损），jaq 定位高性能补充。
+# 二选一结论（2026-10）：jaq 入选、gojq 移除 —— v3 起 jaq 已具备模块系统
+#   与大整数无损（旧版短板消失），速度 2-6×；同功能工具不留双份。
 . "$(dirname "$0")/_common.sh"
 
 AUTH=""; [ -n "${GITHUB_TOKEN:-}" ] && AUTH="Authorization: Bearer ${GITHUB_TOKEN}"
