@@ -27,8 +27,8 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge/stdbuf（moreutils/coreutils 小件）、file（GNU file + magic.mgc）、jaq（上游 arm64 无 musl 产物）
-TOOLS="patch micropython tree sqlite3 zstd sponge stdbuf file jaq"
+# 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge（moreutils 小件）、file（GNU file + magic.mgc）、jaq / faketty（Rust 自编译）
+TOOLS="patch micropython tree sqlite3 zstd sponge file jaq faketty"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
