@@ -20,7 +20,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: build-curl-${{ github.ref }}
+  # 与 sync / build-source 共用同一组：所有会提交的流水线串行
+  group: repo-writer
   cancel-in-progress: false
 
 jobs:
@@ -60,7 +61,9 @@ jobs:
           fi
 
       - name: 构建（Alpine chroot + LibreSSL + curl，含 9 项验收）
-        run: sudo bash scripts/build/curl.sh
+        run: |
+          sudo bash scripts/build/curl.sh
+          sudo chown "$(id -u):$(id -g)" /tmp/curl.static /tmp/evidence.txt
 
       - name: UPX 压缩 + 三判据 + 冒烟
         run: |
@@ -96,7 +99,12 @@ jobs:
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           for i in 1 2 3 4 5; do
-            git pull --rebase --autostash origin main >/dev/null 2>&1 || true
+            if ! git pull --rebase --autostash origin main >/dev/null 2>&1; then
+              echo "✗ pull --rebase 冲突，放弃本次提交"; exit 1
+            fi
+            if grep -RIlq --exclude-dir=.git '^<<<<<<< ' . 2>/dev/null; then
+              echo "✗ 工作树存在冲突标记，放弃提交"; exit 1
+            fi
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
             git commit -m "build: curl (LibreSSL 静态) [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
