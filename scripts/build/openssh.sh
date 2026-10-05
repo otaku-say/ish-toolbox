@@ -56,8 +56,11 @@ rm -rf "openssh-$OPENSSH_VER"
 tar xzf "openssh-$OPENSSH_VER.tar.gz"
 cd "openssh-$OPENSSH_VER"
 say "---- configure ----"
+# 踩坑点：prefix 决定 SSH_PROGRAM（scp/sftp 拉起传输层 ssh 的编译期路径，
+# 见 Makefile.in: SSH_PROGRAM=@bindir@/ssh）。设备上 ssh 装在 /usr/local/bin
+# （install.sh 的 wrapper 位置），故用 --prefix=/usr/local 对齐，scp/sftp 才能找到它。
 ./configure \
-  --prefix=/usr \
+  --prefix=/usr/local \
   --sysconfdir=/etc/ssh \
   --with-ssl-dir=/usr \
   --without-pam --without-kerberos5 --without-shadow \
@@ -107,6 +110,12 @@ esac
 
 # ---------------- [s6] 端到端：本机 sshd（用我们的客户端） ----------------
 if [ -x /usr/sbin/sshd ]; then
+  # 把套件装进 /usr/local/bin —— scp/sftp 会 exec /usr/local/bin/ssh（SSH_PROGRAM），
+  # 与设备安装布局一致；E2E 即验证“完整套件协同工作”
+  mkdir -p /usr/local/bin
+  for b in ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add; do
+    cp "/build/$b.static" "/usr/local/bin/$b"
+  done
   mkdir -p /run/sshd /root/.ssh
   chmod 700 /root/.ssh
   ssh-keygen -A >/dev/null 2>&1 || true
