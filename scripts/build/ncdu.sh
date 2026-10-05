@@ -12,9 +12,10 @@ echo "  ncdu 上游最新: $VER"
 
 # 官方 release tarball 自带 configure，绕开 autoreconf（CI 上 m4 宏会翻车）
 if fetch_url "https://dev.yorhel.nl/download/$VER" "${VER%.tar.gz}" ncdu; then
+  # 同 nnn：Zig 只按 dynamic 策略找 -lncursesw，静态库必须用 .a 全路径直给
   ( cd /tmp/build/ncdu \
     && CC="$CROSS_CC" CFLAGS="$CSIZE" ./configure --host="$T" \
-         CPPFLAGS="$NCINC" LDFLAGS="$NCLIB -Wl,--gc-sections" \
+         CPPFLAGS="$NCINC" LDFLAGS="/tmp/nc-prefix/lib/libncursesw.a -Wl,--gc-sections" \
          --disable-dependency-tracking >/tmp/c-ncdu 2>&1 \
     && make -j"$(nproc)" >/tmp/m-ncdu 2>&1 && cp ncdu /tmp/build/ncdu.bin ) \
     && install_verified /tmp/build/ncdu.bin ncdu \

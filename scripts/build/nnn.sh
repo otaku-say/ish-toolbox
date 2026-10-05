@@ -13,10 +13,12 @@ if fetch jarun/nnn nnn; then
   ( cd /tmp/build/nnn && make clean >/dev/null 2>&1
     # nnn 的链接命令是 `$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) ... $(LDLIBS)`
     # → LDFLAGS 必须显式传，否则 arm64 的 Zig 会产出动态可执行文件（PT_INTERP）
+    # → 库用 **.a 全路径**：Zig 的 lld 只会按 "dynamic library" 策略找 -lncursesw，
+    #   而我们编的是静态库（--without-shared），只能直给文件路径
     make nnn CC="$CROSS_CC" O_NORL=1 \
          CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
          CPPFLAGS="-DNORL $NCINC $FTSINC" \
-         LDLIBS="$NCLIB $FTSLIB -lncursesw -Wl,--gc-sections" >/tmp/m-nnn 2>&1 \
+         LDLIBS="$NCLIB -L/tmp/fts-prefix/lib /tmp/nc-prefix/lib/libncursesw.a /tmp/fts-prefix/lib/libfts.a -Wl,--gc-sections" >/tmp/m-nnn 2>&1 \
     && cp nnn /tmp/build/nnn.bin ) \
     && install_verified /tmp/build/nnn.bin nnn \
     || echo "  ✗ nnn: $(grep -iE 'error|fatal|not found' /tmp/m-nnn 2>/dev/null | head -1 | cut -c1-110)"

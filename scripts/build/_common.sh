@@ -44,6 +44,12 @@ fi
 : "${UPX:=1}"
 run_ok() { "$1" --version >/dev/null 2>&1 || "$1" --help >/dev/null 2>&1; }
 
+# 能否在本机真机执行（CI 的 runner 是 x86_64，无法运行 arm64 产物 ——
+# 之前漏了这一步，导致 arm64 的 UPX 全被判为"跑不起来"而回退）
+HOST_ARCH=$(uname -m)
+case "$HOST_ARCH" in aarch64|arm64) HOST_ARCH=arm64 ;; x86_64|amd64) HOST_ARCH=amd64 ;; esac
+CAN_RUN=0; [ "$HOST_ARCH" = "$ARCH" ] && CAN_RUN=1
+
 install_verified() {  # <路径> <命令名>
   local b="$1" n="$2"
   [ -f "$b" ] || { echo "  ✗ $n 产物不存在"; return 1; }
@@ -56,8 +62,19 @@ install_verified() {  # <路径> <命令名>
   local note=""
   if [ "$UPX" = 1 ] && command -v upx >/dev/null 2>&1; then
     cp "$b" "$b.pre-upx"
-    if upx --best -q "$b" 2>/dev/null && run_ok "$b"; then
-      note=" +UPX $(awk -v a="$pre" -v c="$(wc -c < "$b")" 'BEGIN{printf "%d%%", c*100/a}')"
+    if upx --best -q "$b" 2>/dev/null; then
+      # 同架构才做运行验证；跨架构时仅信任 UPX（产物在目标机上另有验证环节）
+      if [ "$CAN_RUN" = 1 ] && ! run_ok "$b"; then
+        mv "$b.pre-upx" "$b"; note=" (UPX 回退)"
+      else
+        # 压缩后三判据必须仍成立（架构/静态性不能被 UPX 破坏）
+        local em2; em2=$(od -An -tx1 -j18 -N1 "$b" | tr -d ' \n')
+        if [ "$em2" = "$EM" ] && ! readelf -d "$b" 2>/dev/null | grep -q NEEDED; then
+          note=" +UPX $(awk -v a="$pre" -v c="$(wc -c < "$b")" 'BEGIN{printf "%d%%", c*100/a}')"
+        else
+          mv "$b.pre-upx" "$b"; note=" (UPX 异常回退)"
+        fi
+      fi
     else
       mv "$b.pre-upx" "$b"; note=" (UPX 跳过)"
     fi

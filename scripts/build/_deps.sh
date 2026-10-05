@@ -40,3 +40,6 @@ if [ ! -f /tmp/fts-prefix/lib/libfts.a ]; then
   fi
 fi
 export FTSINC="-I/tmp/fts-prefix/include" FTSLIB="-L/tmp/fts-prefix/lib -lfts"
+# 诊断：确认库产物名（Zig 只找 dynamic 库，静态库要用全路径直给）
+[ -d /tmp/nc-prefix/lib ] && ls /tmp/nc-prefix/lib/*.a 2>/dev/null | head -3
+[ -d /tmp/fts-prefix/lib ] && ls /tmp/fts-prefix/lib/*.a 2>/dev/null | head -2
