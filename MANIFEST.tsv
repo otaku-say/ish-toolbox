@@ -1,26 +1,12 @@
 tool	repo	version	description
-age	FiloSottile/age	v1.3.2	文件加密
-b3sum	BLAKE3-team/BLAKE3	default	BLAKE3 哈希（自编译，上游无 arm64 musl 产物）
-bat	sharkdp/bat	v0.26.1	语法高亮看源码，兼做 diff 渲染
-binsider	orhun/binsider	v0.3.2	ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
-bottom	ClementTsang/bottom	0.14.9	终端 TUI 监控
-cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道，替代 htmlq）
-curl	stunnel/static-curl	8.22.0	HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩；替代体积更大的 xh）
-dust	bootandy/dust	v1.2.6	目录占用树
+cascadia	suntong/cascadia	v1.5.1	HTML CSS 选择器提取（stdin/stdout 管道）
+curl	stunnel/static-curl	8.22.0	HTTP 客户端（静态构建，含 TLS/HTTP2/HTTP3/压缩）
 fd	sharkdp/fd	v10.5.0	按模式找文件
-fzf	junegunn/fzf	v0.74.4	模糊选择列表
-fzy	jhawthorn/fzy	default	模糊查找（自编译，上游无 arm64 产物）
 gojq	itchyny/gojq	v0.12.19	Go 版 jq（JSON 处理，jq 语法兼容）
-gping	orf/gping	gping-v1.21.0	ping 延迟折线图
-jaq	01mf02/jaq	default	Rust 版 jq（自编译，musl 版需自编）
-kibi	ilai-deutel/kibi	v0.3.3	极简终端编辑器
 micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
-ouch	ouch-org/ouch	0.8.3	统一解压
-patch	gnu-mirror-unofficial/patch	default	打补丁（自编译）
-qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
+patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
-riff	walles/riff	default	diff 高亮渲染（自编译）
 sd	chmln/sd	v1.1.0	正则替换
-step	smallstep/cli	v0.31.0	现代证书与 PKI 工具（证书签发/检查、JWT/JWK、TLS 排查）
-su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级，静态 0.06MB）
-zoxide	ajeetdsouza/zoxide	v0.10.0	目录智能跳转
+sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
+su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
+tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
