@@ -38,6 +38,7 @@ step|smallstep/cli|现代证书与 PKI 工具（证书签发/检查、JWT/JWK、
 binsider|orhun/binsider|ELF 二进制分析（rabin2 的静态替代，2.27MB vs 7.7MB）
 gojq|itchyny/gojq|Go 版 jq（JSON 处理，jq 语法兼容）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
+cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道，替代 htmlq）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -146,7 +147,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="fzy patch nnn b3sum jaq riff htmlq micropython"
+SELF_BUILT="fzy patch b3sum jaq riff micropython"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 for f in "$T/$want_arch"/*; do

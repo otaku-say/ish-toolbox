@@ -1,7 +1,7 @@
 name: 从源码构建静态二进制
 
 # 上游不给 arm64 产物的工具，在这里编译 —— 免费、可复现、产物直接进仓库。
-# 覆盖：fzy / patch / nnn / b3sum / jaq / ncdu（每个都 × arm64 + amd64）
+# 覆盖：fzy / patch / b3sum / jaq / riff / micropython（每个都 × arm64 + amd64）
 
 on:
   workflow_dispatch:              # 手动触发
@@ -38,7 +38,7 @@ jobs:
       - name: 系统依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools autoconf automake libtool pkg-config libncurses-dev
+          sudo apt-get install -y musl-tools autoconf automake libtool pkg-config
 
       - name: 交叉工具链（micropython 的 arm64 用 glibc 静态链接）
         # Zig 的 glibc target 不带完整 libc.a；Debian 交叉链自带，最稳

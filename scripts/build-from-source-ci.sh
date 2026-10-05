@@ -27,9 +27,9 @@ case "$ARCH" in
 esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
-# ncdu 已移除（交叉编译 ncurses 成本过高，用同样在库里的 dust 替代）
-# htmlq / micropython：上游不发 arm64 产物，走源码编译
-TOOLS="fzy patch nnn b3sum jaq riff htmlq micropython"
+# nnn 已移除（ncurses 交叉编译链成本过高）；htmlq 已移除（改用上游同步的 cascadia）
+# 现役：fzy / patch / b3sum / jaq / riff（上游不给 arm64 musl 产物）+ micropython（上游只发源码）
+TOOLS="fzy patch b3sum jaq riff micropython"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
