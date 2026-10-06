@@ -292,7 +292,7 @@ say "s_client 证书链张数 = $ncert"
 say ""
 sec "V10b openssl 默认行为（iSH 适配：缺配置 / 毒配置 / 默认验链）"
 # 1) version -d 干净（无 warning/error 行）
-nver=$("$O" version -d 2>&1 | grep -ci 'warning\|error'); say "version -d 警告/错误行 = $nver"
+nver=$("$O" version -d 2>&1 | grep -ci 'warning\|error' || true); say "version -d 警告/错误行 = $nver"
 if [ "$nver" = 0 ]; then ok "openssl version -d 无警告"; else bad "openssl version -d 有 $nver 行警告"; fi
 # 2) 毒配置在位也不炸（Alpine/iSH 自带的 OpenSSL3 式配置就是这种）
 cp /etc/ssl/openssl.cnf /tmp/openssl.cnf.save 2>/dev/null || true
