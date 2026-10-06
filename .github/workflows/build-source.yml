@@ -64,11 +64,25 @@ jobs:
         with:
           version: 0.13.0
 
-      - name: 装 UPX（可选压缩，URL 直取避免 apt 包名差异）
+      - name: 装 UPX（自动跟随上游最新；带 iSH 兼容门禁）
+        # 策略（2026-10 用户定）：从上游 releases 自动取最新版；若命中"已知在 iSH 上
+        # 段错误"名单则回退已验证版本并告警，上游修复后（从名单移除）自动吃最新。
+        # 5.2.1 实锤：arm64 压缩产物 iSH exec 即崩（7/9 抽样 + default/-1/--lzma 全崩）；
+        # 4.2.4 已验证：9/9 抽样 + 设备全量已装工具全过。
         run: |
-          if curl -fsSL -o /tmp/upx.txz https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-amd64_linux.tar.xz; then
+          KNOWN_BAD="5.2.1"
+          VERIFIED="4.2.4"
+          TAG=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/upx/upx/releases/latest | jq -r .tag_name 2>/dev/null)
+          VER="${TAG#v}"
+          if [ -z "$VER" ] || [ "$VER" = "null" ] || echo " $KNOWN_BAD " | grep -q " $VER "; then
+            echo "::warning::UPX 最新版($VER) 在已知问题名单或查询失败，回退已验证版本 $VERIFIED"
+            VER="$VERIFIED"
+          fi
+          echo "UPX 使用版本: $VER"
+          if curl -fsSL -o /tmp/upx.txz "https://github.com/upx/upx/releases/download/v${VER}/upx-${VER}-amd64_linux.tar.xz"; then
             tar xJf /tmp/upx.txz -C /tmp
-            sudo cp /tmp/upx-4.2.4-amd64_linux/upx /usr/local/bin/
+            sudo cp "/tmp/upx-${VER}-amd64_linux/upx" /usr/local/bin/
             upx --version | head -1
           else
             echo "UPX 下载失败，本次跳过压缩"
