@@ -8,14 +8,18 @@
 GT_OK=""
 VER=$(latest_gnu gettext 'gettext-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz' || true)
 echo "  gettext 上游最新: ${VER:-（listing 不可用，转候选版本）}"
-[ -n "$VER" ] && fetch_gnu "gettext/$VER" "${VER%.tar.xz}" gettext && GT_OK=1
+# ⚠ 版本策略：0.26 是本管道反复验证过的稳定版；1.0 是全新大版本
+#   （本地能编、CI 上 make 期失败，疑似其构建系统尚不稳定）→ 0.26 优先。
+if [ -n "$VER" ] && [ "$VER" != "gettext-1.0.tar.xz" ]; then
+  fetch_gnu "gettext/$VER" "${VER%.tar.xz}" gettext && GT_OK=1
+fi
 if [ -z "$GT_OK" ]; then
-  for V in 1.0 0.26; do
+  for V in 0.26 1.0; do
     if fetch_gnu "gettext/gettext-$V.tar.xz" "gettext-$V" gettext; then GT_OK=1; break; fi
   done
 fi
 if [ -z "$GT_OK" ]; then
-  for N in "gettext_1.0.orig.tar.xz:gettext-1.0" "gettext_0.23.1.orig.tar.xz:gettext-0.23.1"; do
+  for N in "gettext_0.26.orig.tar.xz:gettext-0.26" "gettext_1.0.orig.tar.xz:gettext-1.0" "gettext_0.23.1.orig.tar.xz:gettext-0.23.1"; do
     F=${N%%:*}; D=${N#*:}
     if fetch_url "https://deb.debian.org/debian/pool/main/g/gettext/$F" "$D" gettext; then GT_OK=1; break; fi
   done
@@ -28,4 +32,4 @@ fi
   && make -j"$(nproc)" LDFLAGS="-no-pie -all-static" >/tmp/m-gt 2>&1 \
   && cp src/envsubst /tmp/build/envsubst.bin ) \
   && UPX=0 install_verified /tmp/build/envsubst.bin envsubst \
-  || echo "  ✗ envsubst: $(grep -iE 'error|not found' /tmp/m-gt /tmp/c-gt 2>/dev/null | head -1 | cut -c1-110)"
+  || { echo "  ✗ envsubst: $(grep -iE 'error|cannot|no rule|not found' /tmp/m-gt /tmp/c-gt 2>/dev/null | head -1 | cut -c1-110)"; tail -10 /tmp/m-gt 2>/dev/null | sed 's/^/      | /'; }
