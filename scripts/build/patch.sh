@@ -1,16 +1,16 @@
 #!/bin/bash
 # patch.sh —— GNU patch（C，autotools）
 #
-# 上游最新：GNU 官方 ftp 目录（**不使用 GitHub 镜像**——之前用
-#           archive tarball + autoreconf 路线失败，因为 CI 上 m4 宏环境有问题；
-#           官方 release tarball 自带 configure，直接绕开）
+# 上游最新：GNU 官方目录（自带 configure，不用 GitHub 镜像的 autoreconf 路线）。
+# ⚠ ftp.gnu.org / ftpmirror 在 CI 侧不可达（2026-10 探针实锤）→ 走 _common 的
+# 统一镜像链（kernel.org / 清华 / 阿里 / 官方兜底）。
 . "$(dirname "$0")/_common.sh"
 
-VER=$(latest_from_listing "https://ftp.gnu.org/gnu/patch/" 'patch-[0-9]+\.[0-9]+\.tar\.gz')
+VER=$(latest_gnu patch 'patch-[0-9]+\.[0-9]+\.tar\.gz' || true)
 [ -z "$VER" ] && { echo "  ! patch 版本查询失败"; exit 0; }
 echo "  patch 上游最新: $VER"
 
-if fetch_url "https://ftp.gnu.org/gnu/patch/$VER" "${VER%.tar.gz}" patch; then
+if fetch_gnu "patch/$VER" "${VER%.tar.gz}" patch; then
   ( cd /tmp/build/patch \
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
        ./configure --host="$T" --disable-dependency-tracking >/tmp/c-patch 2>&1 \
