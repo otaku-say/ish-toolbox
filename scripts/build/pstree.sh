@@ -1,27 +1,30 @@
 #!/bin/bash
 # pstree.sh —— 进程树（psmisc 套件里只取 pstree 一个二进制）
-# 依赖链：ncurses（宽字符版）→ psmisc。三个实测要点：
-#   ① 本配方构建的 ncurses 只产 libncursesw.a 等 wide 库 → 软链出
-#      libncurses.a / libtinfo.a，供 psmisc 的 AC_SEARCH_LIBS(tgetent…) 命中
+# 依赖链：ncurses（宽字符版）→ psmisc。四个实测要点：
+#   ① ncurses 只产 libncursesw.a 等 wide 库 → 软链出 libncurses.a/libtinfo.a
 #   ② psmisc 只编 src/pstree 目标（fuser 等需要 linux/*.h，与本工具无关）
-#   ③ 交叉编译 gnulib 会把 malloc/realloc 误判为"需替换"（rpl_*）——
-#      用 ac_cv_func_{malloc,realloc}_0_nonnull=yes 过掉（arm64/zig 实测必须）
-#   ④ ncurses 头在 include/ncursesw/ 子目录：编译要双 -I（层级名 + 本体）
+#   ③ 交叉编译 gnulib 会误判 malloc/realloc"需替换"（rpl_* 未定义）→ cache 变量过掉
+#   ④ ncurses 头在 include/ncursesw/ 下：编译要双 -I（层级名 + 本体）
+# GNU 源走三镜像链（CI 网络对 ftpmirror/ftp.gnu.org 均可能超时，2026-10 实锤）。
 . "$(dirname "$0")/_common.sh"
 
 NCVER=6.5
 NCD="/tmp/ncurses-build-$ARCH"
 if [ ! -f "$NCD/.done" ]; then
-  if fetch_url "https://ftpmirror.gnu.org/gnu/ncurses/ncurses-$NCVER.tar.gz" "ncurses-$NCVER" nc; then
-    ( cd /tmp/build/nc \
-      && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
-           --without-shared --without-debug --without-ada --without-manpages \
-           --without-tests --prefix="$NCD" >/tmp/c-nc 2>&1 \
-      && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/tmp/i-nc 2>&1 \
-      && ln -sf libncursesw.a "$NCD/lib/libncurses.a" \
-      && ln -sf libncursesw.a "$NCD/lib/libtinfo.a" \
-      && touch "$NCD/.done" ) || echo "  ✗ ncurses: $(tail -3 /tmp/m-nc 2>/dev/null | head -1 | cut -c1-110)"
-  fi
+  NC_OK=""
+  for M in "https://mirrors.kernel.org/gnu" "https://ftpmirror.gnu.org/gnu" "https://ftp.gnu.org/gnu"; do
+    if fetch_url "$M/ncurses/ncurses-$NCVER.tar.gz" "ncurses-$NCVER" nc; then NC_OK=1; break; fi
+    echo "  ! 镜像不可达：$M"
+  done
+  [ -z "$NC_OK" ] && { echo "  ✗ pstree: ncurses 下载失败（三镜像均不可达）"; exit 0; }
+  ( cd /tmp/build/nc \
+    && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
+         --without-shared --without-debug --without-ada --without-manpages \
+         --without-tests --prefix="$NCD" >/tmp/c-nc 2>&1 \
+    && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/tmp/i-nc 2>&1 \
+    && ln -sf libncursesw.a "$NCD/lib/libncurses.a" \
+    && ln -sf libncursesw.a "$NCD/lib/libtinfo.a" \
+    && touch "$NCD/.done" ) || echo "  ✗ ncurses: $(tail -3 /tmp/m-nc 2>/dev/null | head -1 | cut -c1-110)"
 fi
 [ -f "$NCD/.done" ] || { echo "  ✗ pstree: ncurses 依赖未就绪，跳过"; exit 0; }
 
