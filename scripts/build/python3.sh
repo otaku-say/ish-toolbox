@@ -196,7 +196,7 @@ textwrap.py token.py tokenize.py traceback.py types.py typing.py warnings.py wea
 site.py _sitebuiltins.py base64.py hashlib.py hmac.py secrets.py random.py socket.py ssl.py
 selectors.py uuid.py calendar.py quopri.py bisect.py datetime.py subprocess.py threading.py
 queue.py signal.py tempfile.py shutil.py fnmatch.py glob.py gzip.py fileinput.py shlex.py
-mimetypes.py numbers.py csv.py argparse.py getopt.py pickle.py tarfile.py zipfile.py
+mimetypes.py numbers.py csv.py argparse.py getopt.py pickle.py tarfile.py
 socketserver.py sysconfig.py statistics.py platform.py pprint.py difflib.py ipaddress.py
 inspect.py dis.py opcode.py decimal.py fractions.py
 locale.py getpass.py netrc.py configparser.py pty.py tty.py stringprep.py
