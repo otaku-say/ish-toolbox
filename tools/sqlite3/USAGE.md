@@ -59,5 +59,5 @@ sqlite3 -bail t.db "select * from nope;"
 ## 相关工具
 
 - `jaq` —— 接 `-json` 输出继续加工：`sqlite3 -json t.db "select * from u;" | jaq '.[].name'`
-- `micropython` —— 没有 sqlite3 模块，需要库操作时走本 CLI
+- `python3` —— 内置 sqlite3 模块；库操作也可走 Python
 - `rg` —— 在 .sql 转储文本里搜

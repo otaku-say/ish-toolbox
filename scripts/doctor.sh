@@ -42,6 +42,10 @@ bad=0
 for d in "$D"/*/"$A"/; do
   [ -d "$d" ] || continue
   n="$(basename "$(dirname "$d")")"; b="$d$n"
+  if [ ! -f "$b" ] && [ -f "$b.tar.gz" ]; then
+    printf '  %-12s %-6s %-6s %s（tar.gz 整树件）\n' "$n" "包" "—" "$(awk -v s=$(wc -c < "$b.tar.gz") 'BEGIN{printf "%.1fMB", s/1048576}')"
+    continue
+  fi
   if [ ! -f "$b" ]; then echo "  ✗ $n/ 缺 $A 主程序（期望 $n/$A/$n）"; bad=$((bad+1)); continue; fi
   st=FAIL
   readelf -l "$b" 2>/dev/null | grep -q INTERP || {

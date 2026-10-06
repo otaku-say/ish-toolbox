@@ -16,11 +16,11 @@ hxselect	w3.org html-xml-utils	8.8	按 CSS 选择器提取 HTML/XML 元素（替
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 jo	jpmens/jo	1.9	从命令行参数生成 JSON（自编译静态；tag 无 v 前缀）
 lowdown	kristapsdz/lowdown	3.2.1	Markdown → HTML/终端/roff（bmake 构建）
-micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
+python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；白名单瘦身+UPX，解包即用）
 qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
 rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）

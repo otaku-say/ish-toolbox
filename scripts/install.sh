@@ -28,6 +28,20 @@ for f in "$SRC"/*/"$ARCH"/*; do
   case "$(basename "$f")" in SHA256SUMS) continue ;; esac
   name="$(basename "$f")"
 
+  # python3：tar.gz 整树件 —— 解包到工具目录 + 软链（而非拷贝单文件）
+  case "$name" in
+    python3.tar.gz)
+      tdir="$SRC/python3/$ARCH/tree"
+      if [ ! -x "$tdir/bin/python3" ]; then
+        rm -rf "$tdir"; mkdir -p "$tdir"
+        tar xzf "$f" -C "$tdir" || { echo "  ✗ python3 解包失败"; skip=$((skip+1)); continue; }
+      fi
+      ln -sf "$tdir/bin/python3" "$DEST/python3"
+      ln -sf "$tdir/bin/python3" "$DEST/python"
+      echo "  ✓ python3  (整树 $tdir)"
+      ok=$((ok+1)); continue ;;
+  esac
+
   # 架构校验：不信文件名，读 ELF 头
   em=$(od -An -tx1 -j18 -N1 "$f" 2>/dev/null | tr -d ' \n')
   [ "$em" = "$EM" ] || { echo "  ✗ $name 架构不符（$em ≠ $EM）"; skip=$((skip+1)); continue; }

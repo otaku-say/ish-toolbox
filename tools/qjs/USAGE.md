@@ -61,6 +61,6 @@ qjs -d -e 'var a=[1,2,3]'
 
 ## 相关工具
 
-- `micropython` —— 更 Python 风味的小脚本
+- `python3` —— 完整 Python 解释器（本套件自带，全静态）
 - `jaq` —— 命令行 JSON 处理
 - `sqlite3` —— 数据落库

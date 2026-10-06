@@ -15,7 +15,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 AUTH=""; [ -n "${GITHUB_TOKEN:-}" ] && AUTH="Authorization: Bearer ${GITHUB_TOKEN}"
 TMP=$(mktemp); trap 'rm -f "$TMP"' EXIT INT TERM
 
-mb() { [ -f "$1" ] && awk -v s="$(wc -c < "$1")" 'BEGIN{printf "%.1f MB", s/1048576}' || echo "—"; }
+mb() { f="$1"; [ -f "$f" ] || f="$f.tar.gz"; [ -f "$f" ] && awk -v s="$(wc -c < "$f")" 'BEGIN{printf "%.1f MB", s/1048576}' || echo "—"; }
 
 {
   echo "| 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |"

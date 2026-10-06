@@ -77,5 +77,5 @@ jaq -n -L . 'import "lib" as lib; 3 | lib::double'
 ## 相关工具
 
 - `qjs` —— JSON.parse/stringify 的小活
-- `micropython` —— 复杂逻辑用 Python
+- `python3` —— 复杂逻辑用 Python
 - `rg` —— 纯文本搜索

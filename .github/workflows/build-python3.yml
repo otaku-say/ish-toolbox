@@ -1,0 +1,94 @@
+name: Build python3（zig cc · LibreSSL · sqlite3 · 瘦身+UPX）
+
+# 自编译全静态 CPython 3.12：两架构构建 → 白名单瘦身 → UPX → 验收 → 提交产物
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/build/python3.sh'
+      - 'scripts/build/python3-sweep.sh'
+      - '.github/workflows/build-python3.yml'
+  schedule:
+    - cron: '23 4 1 * *'        # 每月 1 日（错开 sync / build-source / build-curl）
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-writer
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 释放 runner 磁盘空间
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+
+      - name: 安装工具链（zig / upx / 交叉 binutils / qemu）
+        run: |
+          set -eux
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq binutils-aarch64-linux-gnu qemu-user-static binfmt-support
+          curl -fsSL -o /tmp/zig.tar.xz https://ziglang.org/download/0.17.0/zig-linux-x86_64-0.17.0.tar.xz
+          sudo tar -xJf /tmp/zig.tar.xz -C /opt
+          sudo ln -sf /opt/zig-linux-x86_64-0.17.0/zig /usr/local/bin/zig
+          curl -fsSL -o /tmp/upx.tar.xz https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-amd64_linux.tar.xz
+          sudo tar -xJf /tmp/upx.tar.xz -C /opt
+          sudo ln -sf /opt/upx-4.2.4-amd64_linux/upx /usr/local/bin/upx
+          zig version && upx --version | head -1
+
+      - name: 启用 qemu binfmt（aarch64 交叉执行）
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: 构建 aarch64（含瘦身 / UPX / 零告警自检）
+        run: ARCH=arm64 bash scripts/build/python3.sh
+
+      - name: 构建 x86_64（含瘦身 / UPX / 零告警自检）
+        run: ARCH=amd64 bash scripts/build/python3.sh
+
+      - name: 全量验收（两架构：全量导入 + 功能抽查）
+        run: |
+          sh scripts/build/python3-sweep.sh /tmp/python3-slim-arm64
+          sh scripts/build/python3-sweep.sh /tmp/python3-slim-amd64
+
+      - name: 提交产物（重置到最新 main 后重放 baked 产物）
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eux
+          git config user.name "Minis Agent"
+          git config user.email "otaku-say@users.noreply.github.com"
+          for i in 1 2 3 4 5; do
+            echo "第 $i 轮：重置到 origin/main 后重新落地产物"
+            git fetch origin main
+            git reset --hard origin/main
+            mkdir -p tools/python3/arm64 tools/python3/amd64
+            cp /tmp/python3-arm64.tar.gz tools/python3/arm64/python3.tar.gz
+            cp /tmp/python3-amd64.tar.gz tools/python3/amd64/python3.tar.gz
+            for a in arm64 amd64; do
+              ( cd tools && find . -path "./*/$a/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.$a" )
+            done
+            bash scripts/gen-doc-sums.sh || true
+            bash scripts/gen-table.sh || true
+            git add -A
+            if git diff --cached --quiet; then echo "无变更"; exit 0; fi
+            git commit -m "build: python3 自编译全静态（zig cc/LibreSSL/sqlite3；白名单瘦身+UPX） [arm64+amd64] $(date -u +%Y-%m-%d)" >/dev/null
+            if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
+            echo "push 被拒，重试 $((i+1))/5…"
+            sleep $((i * 3))
+          done
+          echo "push 多次失败"; exit 1
+
+      - name: 上传产物与证据
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python3-packages
+          path: /tmp/python3-*.tar.gz
+          retention-days: 14

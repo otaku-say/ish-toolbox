@@ -1,5 +1,4 @@
 tool	repo	version	description
-micropython	micropython/micropython	default	MicroPython 解释器（unix port，静态自编译）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
@@ -36,3 +35,4 @@ fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
+python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；白名单瘦身+UPX，解包即用）
