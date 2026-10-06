@@ -16,6 +16,8 @@ on:
       - '!scripts/build/openssh.sh'
       - '!scripts/build/socat.sh'
       - '!scripts/build/drill.sh'
+      - '!scripts/build/python3.sh'
+      - '!scripts/build/python3-sweep.sh'
       - '.github/workflows/build-source.yml'
   schedule:
     - cron: '37 3 * * *'          # 每日 UTC 03:37 跟一次（上游有新提交就重建）

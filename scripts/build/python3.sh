@@ -89,7 +89,12 @@ if [ ! -f "$WORK/libressl-prefix/lib/libssl.a" ]; then
       --prefix="$WORK/libressl-prefix" --disable-shared --enable-static \
       --with-openssldir=/etc/ssl > llog 2>&1
   make -j"$JOBS" >> llog 2>&1
-  make install >> llog 2>&1
+  # 安装走 DESTDIR 侧舱：避免 install-exec-hook 往 /etc/ssl 写（CI 非 root 会 Permission denied）
+  make install DESTDIR="$WORK/lside" >> llog 2>&1
+  rm -rf "$WORK/lside/etc"
+  mkdir -p "$WORK/libressl-prefix"
+  cp -a "$WORK/lside$WORK/libressl-prefix/." "$WORK/libressl-prefix/"
+  rm -rf "$WORK/lside"
 fi
 
 echo "=== [$ARCH] 4/8 CPython 源码修补 ==="
