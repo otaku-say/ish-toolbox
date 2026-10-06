@@ -20,7 +20,8 @@ if [ ! -f "$NCD/.done" ]; then
   ( cd /tmp/build/nc \
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
          --without-shared --without-debug --without-ada --without-manpages \
-         --without-tests --prefix="$NCD" >/tmp/c-nc 2>&1 \
+         --without-tests --without-progs --without-cxx --without-cxx-binding \
+         --prefix="$NCD" >/tmp/c-nc 2>&1 \
     && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/tmp/i-nc 2>&1 \
     && ln -sf libncursesw.a "$NCD/lib/libncurses.a" \
     && ln -sf libncursesw.a "$NCD/lib/libtinfo.a" \
@@ -29,7 +30,15 @@ fi
 [ -f "$NCD/.done" ] || { echo "  ✗ pstree: ncurses 依赖未就绪，跳过"; exit 0; }
 
 PVER=23.7
-if fetch_url "https://deb.debian.org/debian/pool/main/p/psmisc/psmisc_$PVER.orig.tar.xz" "psmisc-$PVER" psmisc; then
+PS_OK=""
+for U in "https://deb.debian.org/debian/pool/main/p/psmisc/psmisc_$PVER.orig.tar.xz|psmisc-$PVER" \
+         "https://mirrors.edge.kernel.org/debian/pool/main/p/psmisc/psmisc_$PVER.orig.tar.xz|psmisc-$PVER" \
+         "https://ftp.osuosl.org/pub/blfs/conglomeration/psmisc/psmisc-$PVER.tar.xz|psmisc-$PVER"; do
+  UU=${U%%|*}; DD=${U#*|}
+  if fetch_url "$UU" "$DD" psmisc; then PS_OK=1; break; fi
+done
+[ -z "$PS_OK" ] && { echo "  ✗ pstree: psmisc 下载失败（三源均不可达）"; exit 0; }
+if true; then
   ( cd /tmp/build/psmisc \
     && ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes \
        CC="$CROSS_CC" CFLAGS="$CSIZE -I$NCD/include -I$NCD/include/ncursesw" LDFLAGS="$CLINK -L$NCD/lib" \
