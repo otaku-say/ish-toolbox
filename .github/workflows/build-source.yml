@@ -64,25 +64,15 @@ jobs:
         with:
           version: 0.13.0
 
-      - name: 装 UPX（自动跟随上游最新；带 iSH 兼容门禁）
-        # 策略（2026-10 用户定）：从上游 releases 自动取最新版；若命中"已知在 iSH 上
-        # 段错误"名单则回退已验证版本并告警，上游修复后（从名单移除）自动吃最新。
-        # 5.2.1 实锤：arm64 压缩产物 iSH exec 即崩（7/9 抽样 + default/-1/--lzma 全崩）；
-        # 4.2.4 已验证：9/9 抽样 + 设备全量已装工具全过。
+      - name: 装 UPX（锁定 4.2.4；升级前必须在 iSH 真机验证）
+        # ⚠ 锁定原因（2026-10 实测）：UPX 5.2.1 的 arm64 压缩产物在 iSH 上 exec 即段错误
+        #   （7/9 抽样 + default/-1/--lzma/--no-reloc/--no-align/-f 全崩；其产物 ELF 结构
+        #   与 4.2.4 明显不同、readelf 报大量 out-of-range）。4.2.4 经 9/9 抽样 + 设备
+        #   全量在装工具验证通过。升级流程：沙箱打包 → iSH 真机冒烟 → 通过再改版本号。
         run: |
-          KNOWN_BAD="5.2.1"
-          VERIFIED="4.2.4"
-          TAG=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/upx/upx/releases/latest | jq -r .tag_name 2>/dev/null)
-          VER="${TAG#v}"
-          if [ -z "$VER" ] || [ "$VER" = "null" ] || echo " $KNOWN_BAD " | grep -q " $VER "; then
-            echo "::warning::UPX 最新版($VER) 在已知问题名单或查询失败，回退已验证版本 $VERIFIED"
-            VER="$VERIFIED"
-          fi
-          echo "UPX 使用版本: $VER"
-          if curl -fsSL -o /tmp/upx.txz "https://github.com/upx/upx/releases/download/v${VER}/upx-${VER}-amd64_linux.tar.xz"; then
+          if curl -fsSL -o /tmp/upx.txz https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-amd64_linux.tar.xz; then
             tar xJf /tmp/upx.txz -C /tmp
-            sudo cp "/tmp/upx-${VER}-amd64_linux/upx" /usr/local/bin/
+            sudo cp /tmp/upx-4.2.4-amd64_linux/upx /usr/local/bin/
             upx --version | head -1
           else
             echo "UPX 下载失败，本次跳过压缩"
