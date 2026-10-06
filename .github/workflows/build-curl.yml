@@ -58,22 +58,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl tar xz-utils file binutils
 
-      - name: 装 UPX（自动跟随上游最新；带 iSH 兼容门禁）
-        # 同 build-source.yml：5.2.1 的 arm64 压缩产物在 iSH 段错误（实锤）→ 回退 4.2.4。
+      - name: 装 UPX（锁定 4.2.4；升级前必须在 iSH 真机验证）
+        # 同 build-source.yml：5.2.1 的 arm64 压缩产物在 iSH 段错误（实锤）→ 锁定 4.2.4。
         run: |
-          KNOWN_BAD="5.2.1"
-          VERIFIED="4.2.4"
-          TAG=$(curl -fsSL -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/upx/upx/releases/latest | jq -r .tag_name 2>/dev/null)
-          VER="${TAG#v}"
-          if [ -z "$VER" ] || [ "$VER" = "null" ] || echo " $KNOWN_BAD " | grep -q " $VER "; then
-            echo "::warning::UPX 最新版($VER) 在已知问题名单或查询失败，回退已验证版本 $VERIFIED"
-            VER="$VERIFIED"
-          fi
-          echo "UPX 使用版本: $VER"
-          if curl -fsSL -o /tmp/upx.txz "https://github.com/upx/upx/releases/download/v${VER}/upx-${VER}-${{ matrix.upx }}_linux.tar.xz"; then
+          if curl -fsSL -o /tmp/upx.txz "https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-${{ matrix.upx }}_linux.tar.xz"; then
             tar xJf /tmp/upx.txz -C /tmp
-            sudo cp "/tmp/upx-${VER}-${{ matrix.upx }}_linux/upx" /usr/local/bin/
+            sudo cp "/tmp/upx-4.2.4-${{ matrix.upx }}_linux/upx" /usr/local/bin/
             upx --version | head -1
           else
             echo "UPX 下载失败，本次跳过压缩"
