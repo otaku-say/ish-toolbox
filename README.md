@@ -23,7 +23,7 @@
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
 | `diffstat` | diff 统计（Dickey 原版，自编译） |  | 1.69 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `entr` | 文件变化时执行命令（视 inode） |  | 5.9 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `envsubst` | 环境变量替换（gettext 子包单独构建；-all-static 保静态） |  | 0.26 | 0.0 MB | 0.2 MB | ✅ 源码构建 |
+| `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.0 MB | 0.2 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `fzy` | 模糊查找器（-e 非交互模式对 Agent 友好） | v1.1 | 1.1 | 0.1 MB | 0.1 MB | ✅ 最新 |
