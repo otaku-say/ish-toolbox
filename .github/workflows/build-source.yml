@@ -94,17 +94,22 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # 每轮重试都「重置到最新 origin/main → 重新产出」再提交，绝不在旧工作树上 rebase。
-          # 理由：本流水线与 sync / build-source 共用 repo-writer 组，可能同时结束；
-          # rebase 会在双方同为生成物的文件上冲突（tools/SHA256SUMS.<arch>，2026-10 实锤）。
-          rm -rf /tmp/tools-baked && cp -a tools /tmp/tools-baked
+          # 只烘本架构的产物（tools/*/<arch>/ + 本架构 SUMS）：两个 leg 并发提交时，
+          # 整树烘烤会把对方刚提交的另一架构文件按"本 leg 检出时的旧快照"覆盖回去
+          # （2026-10 实锤：amd64 的 UPX 成果被 arm64 leg 的旧快照冲掉）。
+          rm -rf /tmp/tools-baked && mkdir -p /tmp/tools-baked
+          for d in tools/*/"${{ matrix.arch }}"; do
+            [ -d "$d" ] || continue
+            mkdir -p "/tmp/tools-baked/$d"
+            cp -a "$d/." "/tmp/tools-baked/$d/"
+          done
+          cp -a "tools/SHA256SUMS.${{ matrix.arch }}" /tmp/tools-baked/ 2>/dev/null || true
           for i in 1 2 3 4 5; do
             echo "第 $i 轮：重置到 origin/main 后铺回产物"
             git fetch origin main >/dev/null 2>&1
             git reset --hard origin/main >/dev/null 2>&1
-            # 覆盖式合并（不是整目录替换）：保住并发提交进来的新工具（如 sync 刚推的
-            # rage），只让本 job 的构建产物覆盖同名文件（2026-10 实锤：整目录替换会
-            # 吃掉并发新增；"reset 到最新 + 幂等重放"的核心意图不变）
+            # 铺回本架构产物（覆盖式合并）：保住并发提交进来的新工具与另一架构的
+            # 更新；"reset 到最新 + 幂等重放"的核心意图不变（2026-10 两次实锤）。
             cp -a /tmp/tools-baked/. tools/
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
