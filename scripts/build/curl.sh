@@ -137,21 +137,28 @@ ls /usr/lib/libdl* /usr/lib/libpthread* 2>/dev/null || echo "NOTE: 无 libdl/lib
 
 # ---------------- [i2] LibreSSL ----------------
 log 4 "LibreSSL $LIBRESSL_VER"
-if [ -f /usr/lib/libcrypto.a ] && [ -f /usr/lib/libssl.a ] && [ -f /build/.libressl.done ] && [ "${REBUILD_SSL:-0}" != 1 ]; then
+if [ -f /usr/lib/libcrypto.a ] && [ -f /usr/lib/libssl.a ] && [ -f /build/.libressl.done2 ] && [ "${REBUILD_SSL:-0}" != 1 ]; then
   echo "SKIP: LibreSSL 已就绪（REBUILD_SSL=1 可强制重建）"
 else
   rm -rf "libressl-$LIBRESSL_VER"
   tar xzf "libressl-$LIBRESSL_VER.tar.gz"
   cd "libressl-$LIBRESSL_VER"
+  # iSH 适配（otaku-say/ish-toolbox，2026-10）三补丁：
+  #   ① openssldir=/etc/ssl（对齐 iSH 证书文件位置；见下方 configure 行）
+  #   ② 内嵌 CA bundle 注入默认证书库（无任何文件也能默认验链）
+  #   ③ 默认配置缺失/损坏（如 iSH/Alpine 自带的 OpenSSL3 式 providers）→
+  #      内嵌最小配置兜底，不再 "Auto configuration failed" exit(1)
+  patch -p1 < /build/libressl-ishfix.patch
+  sh /build/gen-embed.sh
   # 踩坑点(1): LibreSSL 基于 libtool，configure --help 只列 --enable-shared/
   # --enable-static，并不出现 "--disable-shared" 字样 —— 不能写 grep 探测，
   # 直接显式传参（autoconf 完整接受 --disable-shared 否定形式）。
-  ./configure --prefix=/usr --disable-shared --enable-static
+  ./configure --prefix=/usr --disable-shared --enable-static --with-openssldir=/etc/ssl
   # 踩坑点(3): libtool 项目，apps 必须用 -all-static 才会静态链接最终程序
   make -j"$JOBS" LDFLAGS="-no-pie -all-static" || { echo "WARN: make -j$JOBS 失败, 回退 -j1 重试"; make -j1 LDFLAGS="-no-pie -all-static"; }
   make install
   cd /build
-  touch /build/.libressl.done
+  touch /build/.libressl.done2
 fi
 ls -l /usr/lib/libcrypto.a /usr/lib/libssl.a /usr/lib/libtls.a
 
@@ -282,6 +289,23 @@ ncert=$(echo | "$O" s_client -connect example.com:443 -servername example.com 2>
 say "s_client 证书链张数 = $ncert"
 [ "$ncert" -ge 1 ] 2>/dev/null && ok "s_client 可用" || bad "s_client 异常"
 
+say ""
+sec "V10b openssl 默认行为（iSH 适配：缺配置 / 毒配置 / 默认验链）"
+# 1) version -d 干净（无 warning/error 行）
+nver=$("$O" version -d 2>&1 | grep -ci 'warning\|error'); say "version -d 警告/错误行 = $nver"
+if [ "$nver" = 0 ]; then ok "openssl version -d 无警告"; else bad "openssl version -d 有 $nver 行警告"; fi
+# 2) 毒配置在位也不炸（Alpine/iSH 自带的 OpenSSL3 式配置就是这种）
+cp /etc/ssl/openssl.cnf /tmp/openssl.cnf.save 2>/dev/null || true
+printf 'openssl_conf = openssl_init\nconfig_diagnostics = 1\n[openssl_init]\nproviders = provider_sect\n[provider_sect]\ndefault = default_sect\n' > /etc/ssl/openssl.cnf
+"$O" req -x509 -newkey rsa:2048 -nodes -keyout /tmp/ik -out /tmp/ic -days 1 -subj /CN=t >/tmp/req.out 2>&1 && rc=0 || rc=$?
+say "毒配置在位 req rc=$rc"
+if [ "$rc" = 0 ]; then ok "毒配置在位 req 仍 rc=0（内嵌兜底生效）"; else bad "毒配置在位 req rc=$rc"; sed -n '1,3p' /tmp/req.out | tee -a "$E"; fi
+if [ -f /tmp/openssl.cnf.save ]; then cp /tmp/openssl.cnf.save /etc/ssl/openssl.cnf; else rm -f /etc/ssl/openssl.cnf; fi
+# 3) 默认验链（s_client）
+ver=$("$O" s_client -connect example.com:443 -servername example.com </dev/null 2>&1 | grep -o 'Verify return code: [0-9]* ([^)]*)' | head -1)
+say "s_client 默认验链: $ver"
+case "$ver" in *"code: 0"*) ok "s_client 默认验链 rc=0";; *) bad "s_client 默认验链 $ver";; esac
+
 # ---------------- [i5] 扩展套件（放在验收段之后：确保其 PASS/FAIL 计入证据与门禁） ----
 # 注意：绝不能放在 [i4] 之前 —— [i4] 开头 `: > "$E"` 会清空证据文件、FAILS 也会被
 # 重置为 0，导致扩展套件的失败被静默吞掉、整轮误判绿色（2026-10 实际踩过）。
@@ -337,6 +361,12 @@ else
   echo "WARN: scripts/build/drill.sh 不存在，本次跳过 drill 构建"
 fi
 
+# iSH 适配三件套（LibreSSL 源码补丁 + 内嵌头生成器 + 最小配置）
+#   由 inner 在解包 LibreSSL 后应用；三个文件都必须随构建带入
+cp "$HERE/libressl-ishfix.patch" "$BUILD_DIR/libressl-ishfix.patch"
+cp "$HERE/gen-embed.sh" "$BUILD_DIR/gen-embed.sh"
+cp "$HERE/libressl-min.cnf" "$BUILD_DIR/libressl-min.cnf"
+
 INNER_RC=0
 if [ "$MODE" = chroot ]; then
   chroot "$WORK" /bin/sh /build/inner.sh || INNER_RC=$?
@@ -365,6 +395,24 @@ if [ -f "$BUILD_DIR/curl.static" ]; then
   echo "[INFO] hermetic --version: $out" | tee -a "$EV"
 else
   echo "[FAIL] 未生成 $BUILD_DIR/curl.static" | tee -a "$EV"
+fi
+
+# ---------------- [5b] openssl 隔离验收（内嵌 CA；根目录无任何 CA 文件） ----------------
+if [ -f "$BUILD_DIR/openssl.static" ]; then
+  if [ ! -d "$HB" ]; then
+    HB=/tmp/hermetic-root; rm -rf "$HB"; mkdir -p "$HB/etc" "$HB/dev"
+    cp /etc/resolv.conf "$HB/etc/resolv.conf"
+    for node in "null c 1 3" "urandom c 1 9"; do
+      set -- $node
+      [ -e "$HB/dev/$1" ] || mknod -m 666 "$HB/dev/$1" "$2" "$3" "$4"
+    done
+  fi
+  cp "$BUILD_DIR/openssl.static" "$HB/openssl"; chmod 755 "$HB/openssl"
+  out=$(chroot "$HB" /openssl s_client -connect example.com:443 -servername example.com </dev/null 2>&1 | grep -o 'Verify return code: [0-9]* ([^)]*)' | head -1)
+  case "$out" in
+    *"code: 0"*) echo "[PASS] hermetic openssl: 空根目录默认验链 rc=0（CA 来自内嵌）" | tee -a "$EV" ;;
+    *) echo "[FAIL] hermetic openssl: $out" | tee -a "$EV" ;;
+  esac
 fi
 
 # ---------------- [6] 汇总与产出 ----------------
