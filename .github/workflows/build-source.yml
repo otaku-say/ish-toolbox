@@ -44,7 +44,7 @@ jobs:
       - name: 系统依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y musl-tools autoconf automake libtool pkg-config unzip
+          sudo apt-get install -y musl-tools autoconf automake libtool pkg-config unzip bmake
 
       - name: 交叉工具链（micropython 的 arm64 用 glibc 静态链接）
         # Zig 的 glibc target 不带完整 libc.a；Debian 交叉链自带，最稳
