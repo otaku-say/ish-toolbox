@@ -299,7 +299,7 @@ cp /etc/ssl/openssl.cnf /tmp/openssl.cnf.save 2>/dev/null || true
 printf 'openssl_conf = openssl_init\nconfig_diagnostics = 1\n[openssl_init]\nproviders = provider_sect\n[provider_sect]\ndefault = default_sect\n' > /etc/ssl/openssl.cnf
 "$O" req -x509 -newkey rsa:2048 -nodes -keyout /tmp/ik -out /tmp/ic -days 1 -subj /CN=t >/tmp/req.out 2>&1 && rc=0 || rc=$?
 say "毒配置在位 req rc=$rc"
-if [ "$rc" = 0 ]; then ok "毒配置在位 req 仍 rc=0（内嵌兜底生效）"; else bad "毒配置在位 req rc=$rc"; sed -n '1,3p' /tmp/req.out | tee -a "$E"; fi
+if [ "$rc" = 0 ]; then ok "毒配置在位 req 仍 rc=0（内嵌兜底生效）"; else bad "毒配置在位 req rc=$rc"; tail -8 /tmp/req.out | tee -a "$E"; fi
 if [ -f /tmp/openssl.cnf.save ]; then cp /tmp/openssl.cnf.save /etc/ssl/openssl.cnf; else rm -f /etc/ssl/openssl.cnf; fi
 # 3) 默认验链（s_client）
 ver=$("$O" s_client -connect example.com:443 -servername example.com </dev/null 2>&1 | grep -o 'Verify return code: [0-9]* ([^)]*)' | head -1)
