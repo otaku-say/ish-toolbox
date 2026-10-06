@@ -11,12 +11,8 @@
 NCVER=6.5
 NCD="/tmp/ncurses-build-$ARCH"
 if [ ! -f "$NCD/.done" ]; then
-  NC_OK=""
-  for M in "https://mirrors.kernel.org/gnu" "https://ftpmirror.gnu.org/gnu" "https://ftp.gnu.org/gnu"; do
-    if fetch_url "$M/ncurses/ncurses-$NCVER.tar.gz" "ncurses-$NCVER" nc; then NC_OK=1; break; fi
-    echo "  ! 镜像不可达：$M"
-  done
-  [ -z "$NC_OK" ] && { echo "  ✗ pstree: ncurses 下载失败（三镜像均不可达）"; exit 0; }
+  fetch_gnu "ncurses/ncurses-$NCVER.tar.gz" "ncurses-$NCVER" nc \
+    || { echo "  ✗ pstree: ncurses 下载失败（_common 镜像链均不可达）"; exit 0; }
   ( cd /tmp/build/nc \
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
          --without-shared --without-debug --without-ada --without-manpages \
