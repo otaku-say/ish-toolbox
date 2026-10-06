@@ -1,0 +1,146 @@
+diff -ruN base/apps/openssl/apps.c p-clean/apps/openssl/apps.c
+--- a/apps/openssl/apps.c	2026-10-04 00:49:35.000000000 +0000
++++ b/apps/openssl/apps.c	2026-10-06 02:51:02.183602000 +0000
+@@ -145,6 +145,16 @@
+ #include <openssl/safestack.h>
+ #include <openssl/ssl.h>
+ #include <openssl/x509.h>
++#include <openssl/bio.h>
++#include <openssl/conf.h>
++#include "tb-embed-conf.h"
++
++/* iSH 适配（otaku-say/ish-toolbox）：内嵌最小配置兜底 */
++static BIO *
++tb_minconf_bio(void)
++{
++	return BIO_new_mem_buf(tb_minconf, (int)(sizeof(tb_minconf) - 1));
++}
+ #include <openssl/x509v3.h>
+ 
+ typedef struct {
+@@ -1056,8 +1066,22 @@
+ 	OPENSSL_config(NULL);
+ 
+ 	if (CONF_modules_load(cnf, NULL, 0) <= 0) {
++		/* iSH 适配：默认配置的模块加载失败（OpenSSL3 式 providers 等）→
++		 * 用内嵌最小配置重试；仍失败按原逻辑报错。 */
++		ERR_clear_error();
++		{
++			CONF *c2 = NCONF_new(NULL);
++			if (c2 != NULL) {
++				if (NCONF_load_bio(c2, tb_minconf_bio(), NULL) > 0 &&
++				    CONF_modules_load(c2, NULL, 0) > 0) {
++					NCONF_free(c2);
++					return 1;
++				}
++				NCONF_free(c2);
++			}
++		}
+ 		BIO_printf(err, "Error configuring OpenSSL\n");
+-		ERR_print_errors(err);
++		ERR_clear_error();
+ 		return 0;
+ 	}
+ 	return 1;
+diff -ruN base/apps/openssl/openssl.c p-clean/apps/openssl/openssl.c
+--- a/apps/openssl/openssl.c	2026-10-04 00:54:32.000000000 +0000
++++ b/apps/openssl/openssl.c	2026-10-06 02:51:02.183602000 +0000
+@@ -126,6 +126,14 @@
+ #include <openssl/pem.h>
+ #include <openssl/ssl.h>
+ #include <openssl/x509.h>
++#include "tb-embed-conf.h"
++
++/* iSH 适配（otaku-say/ish-toolbox）：内嵌最小配置兜底 */
++static BIO *
++tb_minconf_bio(void)
++{
++	return BIO_new_mem_buf(tb_minconf, (int)(sizeof(tb_minconf) - 1));
++}
+ 
+ #define FUNC_TYPE_GENERAL       1
+ #define FUNC_TYPE_MD            2
+@@ -410,7 +418,19 @@
+ 	config = NCONF_new(NULL);
+ 	i = NCONF_load(config, p, &errline);
+ 	if (i == 0) {
+-		if (ERR_GET_REASON(ERR_peek_last_error()) ==
++		if (getenv("OPENSSL_CONF") == NULL) {
++			/* iSH 适配：默认配置缺失/无法解析（如 iSH 自带 OpenSSL3 式配置会
++			 * 触发 unknown module 崩溃）→ 改用内嵌最小配置 */
++			ERR_clear_error();
++			NCONF_free(config);
++			config = NCONF_new(NULL);
++			i = NCONF_load_bio(config, tb_minconf_bio(), &errline);
++			if (i == 0) {
++				ERR_clear_error();
++				NCONF_free(config);
++				config = NULL;
++			}
++		} else if (ERR_GET_REASON(ERR_peek_last_error()) ==
+ 		    CONF_R_NO_SUCH_FILE) {
+ 			BIO_printf(bio_err,
+ 			    "WARNING: can't open config file: %s\n", p);
+diff -ruN base/crypto/conf/conf_sap.c p-clean/crypto/conf/conf_sap.c
+--- a/crypto/conf/conf_sap.c	2025-10-07 16:05:59.000000000 +0000
++++ b/crypto/conf/conf_sap.c	2026-10-06 02:51:02.183602000 +0000
+@@ -88,14 +88,10 @@
+ 	ERR_clear_error();
+ 	if (CONF_modules_load_file(NULL, openssl_config_name,
+ 	    CONF_MFLAGS_DEFAULT_SECTION|CONF_MFLAGS_IGNORE_MISSING_FILE) <= 0) {
+-		BIO *bio_err;
+-		ERR_load_crypto_strings();
+-		if ((bio_err = BIO_new_fp(stderr, BIO_NOCLOSE)) != NULL) {
+-			BIO_printf(bio_err, "Auto configuration failed\n");
+-			ERR_print_errors(bio_err);
+-			BIO_free(bio_err);
+-		}
+-		exit(1);
++		/* iSH 适配（otaku-say/ish-toolbox）：默认配置加载失败（如 iSH/Alpine
++		 * 自带的 OpenSSL3 式配置触发 unknown module providers）不再 exit(1)；
++		 * 静默清错继续，正确配置由 apps 的 load_config 用内嵌兜底。 */
++		ERR_clear_error();
+ 	}
+ 
+ 	return;
+diff -ruN base/crypto/x509/x509_d2.c p-clean/crypto/x509/x509_d2.c
+--- a/crypto/x509/x509_d2.c	2024-03-25 07:32:31.000000000 +0000
++++ b/crypto/x509/x509_d2.c	2026-10-06 02:51:02.179602000 +0000
+@@ -62,6 +62,27 @@
+ #include <openssl/crypto.h>
+ #include <openssl/err.h>
+ #include <openssl/x509.h>
++#include <openssl/bio.h>
++#include <openssl/pem.h>
++#include "tb-embed-ca.h"
++
++/* iSH 适配（otaku-say/ish-toolbox）：内嵌 CA bundle 注入默认证书库 */
++static void
++tb_ish_embed_certs(X509_STORE *ctx)
++{
++	BIO *b = BIO_new_mem_buf(tb_ca_pem, (int)(sizeof(tb_ca_pem) - 1));
++	if (b == NULL)
++		return;
++	for (;;) {
++		X509 *x = PEM_read_bio_X509(b, NULL, NULL, NULL);
++		if (x == NULL)
++			break;
++		X509_STORE_add_cert(ctx, x); /* 重复添加返回错误，忽略 */
++		X509_free(x);
++	}
++	BIO_free(b);
++	ERR_clear_error();
++}
+ 
+ int
+ X509_STORE_set_default_paths(X509_STORE *ctx)
+@@ -78,6 +99,9 @@
+ 		return (0);
+ 	X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+ 
++	/* iSH 适配：内嵌 CA 一并注入（文件缺失也能验链） */
++	tb_ish_embed_certs(ctx);
++
+ 	/* clear any errors */
+ 	ERR_clear_error();
+ 
