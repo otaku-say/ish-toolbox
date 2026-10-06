@@ -1,5 +1,5 @@
---- server-client.c.orig	2026-10-06 10:34:27.313061000 +0000
-+++ server-client.c	2026-10-06 10:34:27.329061000 +0000
+--- a/server-client.c
++++ b/server-client.c
 @@ -2548,6 +2548,13 @@
  	c->out_fd = dup(c->fd);
  #endif
