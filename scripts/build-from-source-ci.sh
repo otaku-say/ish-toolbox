@@ -28,7 +28,7 @@ esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
 # 现役：patch（上游不给 arm64 musl 产物）、micropython/tree/sqlite3/zstd（上游只发源码）、sponge（moreutils 小件）、jaq / faketty（Rust 自编译）
-TOOLS="patch micropython tree sqlite3 zstd sponge jaq faketty tini chronic"
+TOOLS="patch micropython tree sqlite3 zstd sponge jaq faketty tini chronic strip-ansi head-tail jo html2text envsubst diffstat xxhsum lowdown hxselect entr csvquote pv pstree fzy"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
