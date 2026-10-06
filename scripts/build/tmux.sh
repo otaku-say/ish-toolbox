@@ -67,7 +67,7 @@ PATCH="$(cd "$(dirname "$0")" && pwd)/tmux-ishfix.patch"
 fetch_url "https://github.com/tmux/tmux/releases/download/3.7c/tmux-3.7c.tar.gz" "tmux-3.7c" tmuxsrc \
   || { echo "  ✗ tmux: 下载失败"; exit 0; }
 ( cd /tmp/build/tmuxsrc \
-  && ( grep -q 'iSH: 不支持 SCM_RIGHTS' server-client.c || patch -p1 < "$PATCH" >/tmp/p-tm 2>&1 ) \
+  && ( grep -q 'iSH: 不支持 SCM_RIGHTS' server-client.c || patch -p1 --batch < "$PATCH" >/tmp/p-tm 2>&1 ) \
   && grep -q 'iSH: 不支持 SCM_RIGHTS' server-client.c \
   && LIBEVENT_CFLAGS="-I$EVD/include" LIBEVENT_LIBS="-L$EVD/lib -levent" \
      LIBTINFOW_CFLAGS="-I$NCD/include -I$NCD/include/ncursesw" LIBTINFOW_LIBS="-L$NCD/lib -lncursesw -ltinfo" \
