@@ -1,0 +1,16 @@
+--- server-client.c.orig	2026-10-06 10:34:27.313061000 +0000
++++ server-client.c	2026-10-06 10:34:27.329061000 +0000
+@@ -2548,6 +2548,13 @@
+ 	c->out_fd = dup(c->fd);
+ #endif
+ 
++	/* iSH: 不支持 SCM_RIGHTS fd 传递（recvmsg 会丢 ancillary cmsg）——fd 未送达时
++	 * 由服务端按 ttyname 直开客户端终端（沿用上方 Cygwin 的既有兜底思路）。
++	 * 正常系统上 c->fd 已由 imsg 送达，此分支不生效。 */
++	if (c->fd == -1 && c->ttyname != NULL && *c->ttyname != '\0') {
++		c->fd = open(c->ttyname, O_RDWR | O_NOCTTY);
++	}
++
+ 	if (c->flags & CLIENT_CONTROL)
+ 		control_start(c);
+ 	else if (c->fd != -1) {

@@ -8,6 +8,6 @@ if fetch_url "https://github.com/dbro/csvquote/archive/refs/tags/v$VER.tar.gz" "
   ( cd /tmp/build/csvquote \
     && make CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" >/tmp/m-csvq 2>&1 \
     && cp csvquote /tmp/build/csvquote.bin ) \
-    && UPX=0 install_verified /tmp/build/csvquote.bin csvquote \
+    && install_verified /tmp/build/csvquote.bin csvquote \
     || echo "  ✗ csvquote: $(grep -iE 'error|not found' /tmp/m-csvq 2>/dev/null | head -1 | cut -c1-110)"
 fi

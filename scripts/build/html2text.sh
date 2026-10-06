@@ -18,6 +18,6 @@ if fetch_url "https://github.com/grobian/html2text/releases/download/v$VER/html2
        CC=/tmp/zigcc-html CXX=/tmp/zigcxx CFLAGS="$CSIZE" CXXFLAGS="$CSIZE" LDFLAGS="$CLINK" \
        ./configure --host="$T" --disable-dependency-tracking >/tmp/c-h2t 2>&1 \
     && make -j"$(nproc)" >/tmp/m-h2t 2>&1 && cp html2text /tmp/build/h2t.bin ) \
-    && UPX=0 install_verified /tmp/build/h2t.bin html2text \
+    && install_verified /tmp/build/h2t.bin html2text \
     || { echo "  ✗ html2text: $(grep -iE 'error|not found' /tmp/m-h2t /tmp/c-h2t 2>/dev/null | head -1 | cut -c1-110)"; tail -6 /tmp/c-h2t 2>/dev/null | sed 's/^/      | /'; }
 fi

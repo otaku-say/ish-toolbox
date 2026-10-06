@@ -10,6 +10,6 @@ if fetch_url "https://github.com/kristapsdz/lowdown/archive/refs/tags/$VER.tar.g
     && CC="$CROSS_CC" CFLAGS="$CSIZE" ./configure >/tmp/c-ld 2>&1 \
     && bmake -j"$(nproc)" LDFLAGS="$CLINK" >/tmp/m-ld 2>&1 \
     && cp lowdown /tmp/build/lowdown.bin ) \
-    && UPX=0 install_verified /tmp/build/lowdown.bin lowdown \
+    && install_verified /tmp/build/lowdown.bin lowdown \
     || echo "  ✗ lowdown: $(grep -iE 'error|not found' /tmp/m-ld /tmp/c-ld 2>/dev/null | head -1 | cut -c1-110)"
 fi

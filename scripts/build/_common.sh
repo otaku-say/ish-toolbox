@@ -43,7 +43,7 @@ fi
 # 且压缩后真机可运行。先 strip 再 UPX，并用运行测试兜底：
 #   UPX 后跑不起来就自动回退到未压缩版本（安全第一）。
 : "${UPX:=1}"
-run_ok() { "$1" --version >/dev/null 2>&1 || "$1" --help >/dev/null 2>&1; }
+run_ok() { "$1" --version >/dev/null 2>&1 || "$1" -V >/dev/null 2>&1 || "$1" --help >/dev/null 2>&1; }
 
 # 能否在本机真机执行（CI 的 runner 是 x86_64，无法运行 arm64 产物 ——
 # 之前漏了这一步，导致 arm64 的 UPX 全被判为"跑不起来"而回退）

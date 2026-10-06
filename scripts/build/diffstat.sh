@@ -11,6 +11,6 @@ if fetch_url "https://invisible-island.net/archives/diffstat/$VER" "${VER%.tgz}"
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
        ./configure --host="$T" >/tmp/c-ds 2>&1 \
     && make -j"$(nproc)" >/tmp/m-ds 2>&1 && cp diffstat /tmp/build/diffstat.bin ) \
-    && UPX=0 install_verified /tmp/build/diffstat.bin diffstat \
+    && install_verified /tmp/build/diffstat.bin diffstat \
     || echo "  ✗ diffstat: $(grep -iE 'error|not found' /tmp/m-ds /tmp/c-ds 2>/dev/null | head -1 | cut -c1-110)"
 fi

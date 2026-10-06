@@ -33,3 +33,6 @@ csvquote	dbro/csvquote	0.1.5	CSV 逗号/换行保护（配合 awk/cut 双通管�
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
+tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
+bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
+gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）

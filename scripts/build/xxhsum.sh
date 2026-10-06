@@ -7,6 +7,6 @@ if fetch_url "https://github.com/Cyan4973/xxHash/archive/refs/tags/v$VER.tar.gz"
   ( cd /tmp/build/xxh \
     && make xxhsum CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" >/tmp/m-xxh 2>&1 \
     && cp xxhsum /tmp/build/xxhsum.bin ) \
-    && UPX=0 install_verified /tmp/build/xxhsum.bin xxhsum \
+    && install_verified /tmp/build/xxhsum.bin xxhsum \
     || echo "  ✗ xxhsum: $(grep -iE 'error|not found' /tmp/m-xxh 2>/dev/null | head -1 | cut -c1-110)"
 fi

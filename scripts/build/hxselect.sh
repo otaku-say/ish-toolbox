@@ -13,6 +13,6 @@ if fetch_url "https://www.w3.org/Tools/HTML-XML-utils/html-xml-utils-$VER.tar.gz
        CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" >/tmp/c-hxu 2>&1 \
     && make -j"$(nproc)" >/tmp/m-hxu 2>&1 \
     && cp hxselect /tmp/build/hxselect.bin ) \
-    && UPX=0 install_verified /tmp/build/hxselect.bin hxselect \
+    && install_verified /tmp/build/hxselect.bin hxselect \
     || echo "  ✗ hxselect: $(grep -iE 'error|not found' /tmp/m-hxu /tmp/c-hxu 2>/dev/null | head -1 | cut -c1-110)"
 fi

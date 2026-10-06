@@ -17,7 +17,9 @@ if [ ! -f "$NCD/.done" ]; then
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" ./configure --host="$T" \
          --without-shared --without-debug --without-ada --without-manpages \
          --without-tests --without-progs --without-cxx --without-cxx-binding \
-         --prefix="$NCD" >/tmp/c-nc 2>&1 \
+         --prefix="$NCD" \
+         --with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo:/usr/lib/terminfo:/lib/terminfo:/usr/local/share/terminfo" \
+         --with-fallbacks="xterm-256color,xterm,screen-256color,screen,tmux-256color,vt100,linux,ansi" >/tmp/c-nc 2>&1 \
     && make -j"$(nproc)" >/tmp/m-nc 2>&1 && make install >/tmp/i-nc 2>&1 \
     && ln -sf libncursesw.a "$NCD/lib/libncurses.a" \
     && ln -sf libncursesw.a "$NCD/lib/libtinfo.a" \
@@ -41,6 +43,6 @@ if true; then
        ./configure --host="$T" --disable-nls --disable-dependency-tracking >/tmp/c-ps 2>&1 \
     && make -j"$(nproc)" src/pstree CPPFLAGS="-I$NCD/include -I$NCD/include/ncursesw" CFLAGS="$CSIZE" >/tmp/m-ps 2>&1 \
     && cp src/pstree /tmp/build/pstree.bin ) \
-    && UPX=0 install_verified /tmp/build/pstree.bin pstree \
+    && install_verified /tmp/build/pstree.bin pstree \
     || echo "  ✗ pstree: $(grep -iE 'error|not found' /tmp/m-ps /tmp/c-ps 2>/dev/null | head -1 | cut -c1-110)"
 fi

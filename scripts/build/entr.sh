@@ -10,6 +10,6 @@ if fetch_url "https://github.com/eradman/entr/archive/refs/tags/$VER.tar.gz" "en
     && ./configure >/tmp/c-entr 2>&1 \
     && make CC="$CROSS_CC" CFLAGS="$CSIZE" >/tmp/m-entr 2>&1 \
     && cp entr /tmp/build/entr.bin ) \
-    && UPX=0 install_verified /tmp/build/entr.bin entr \
+    && install_verified /tmp/build/entr.bin entr \
     || echo "  ✗ entr: $(grep -iE 'error|not found' /tmp/m-entr /tmp/c-entr 2>/dev/null | head -1 | cut -c1-110)"
 fi
