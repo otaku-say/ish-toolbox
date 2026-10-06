@@ -1,0 +1,28 @@
+name: 网络探测
+on:
+  workflow_dispatch:
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: curl battery
+        run: |
+          for u in \
+            "https://ftp.gnu.org/gnu/gettext/" \
+            "https://ftpmirror.gnu.org/gnu/gettext/" \
+            "https://mirrors.kernel.org/gnu/gettext/" \
+            "https://deb.debian.org/debian/pool/main/p/psmisc/" \
+            "https://sources.debian.org/data/main/g/gettext/gettext_1.0.orig.tar.xz" \
+            "https://sources.debian.org/api/src/gettext/" \
+            "https://dl-cdn.alpinelinux.org/alpine/v3.22/main/x86_64/" \
+            "https://download.savannah.gnu.org/releases/gettext/" \
+            "https://git.savannah.gnu.org/cgit/gettext.git/snapshot/gettext-1.0.tar.gz" \
+            "https://ftp.osuosl.org/pub/blfs/conglomeration/psmisc/" \
+            "https://mirrors.edge.kernel.org/debian/pool/main/p/psmisc/" \
+            "https://gitlab.com/psmisc/psmisc/-/archive/v23.7/psmisc-v23.7.tar.gz" \
+            "https://mirrors.tuna.tsinghua.edu.cn/gnu/gettext/" \
+            "https://mirrors.aliyun.com/gnu/gettext/" \
+            ; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 8 --max-time 25 "$u" 2>/dev/null || echo "ERR")
+            echo "$code  $u"
+          done
