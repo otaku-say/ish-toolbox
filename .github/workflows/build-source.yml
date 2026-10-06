@@ -98,7 +98,10 @@ jobs:
             echo "第 $i 轮：重置到 origin/main 后铺回产物"
             git fetch origin main >/dev/null 2>&1
             git reset --hard origin/main >/dev/null 2>&1
-            rm -rf tools && cp -a /tmp/tools-baked tools
+            # 覆盖式合并（不是整目录替换）：保住并发提交进来的新工具（如 sync 刚推的
+            # rage），只让本 job 的构建产物覆盖同名文件（2026-10 实锤：整目录替换会
+            # 吃掉并发新增；"reset 到最新 + 幂等重放"的核心意图不变）
+            cp -a /tmp/tools-baked/. tools/
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
             git commit -m "build: 从源码构建静态二进制 [${{ matrix.arch }}] $(date -u +%Y-%m-%d)" >/dev/null
