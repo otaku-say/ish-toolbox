@@ -1,6 +1,6 @@
 diff -ruN base/apps/openssl/apps.c p-clean/apps/openssl/apps.c
 --- a/apps/openssl/apps.c	2026-10-04 00:49:35.000000000 +0000
-+++ b/apps/openssl/apps.c	2026-10-06 02:51:02.183602000 +0000
++++ b/apps/openssl/apps.c	2026-10-06 03:28:41.655602000 +0000
 @@ -145,6 +145,16 @@
  #include <openssl/safestack.h>
  #include <openssl/ssl.h>
@@ -18,7 +18,7 @@ diff -ruN base/apps/openssl/apps.c p-clean/apps/openssl/apps.c
  #include <openssl/x509v3.h>
  
  typedef struct {
-@@ -1056,8 +1066,22 @@
+@@ -1056,8 +1066,26 @@
  	OPENSSL_config(NULL);
  
  	if (CONF_modules_load(cnf, NULL, 0) <= 0) {
@@ -30,7 +30,11 @@ diff -ruN base/apps/openssl/apps.c p-clean/apps/openssl/apps.c
 +			if (c2 != NULL) {
 +				if (NCONF_load_bio(c2, tb_minconf_bio(), NULL) > 0 &&
 +				    CONF_modules_load(c2, NULL, 0) > 0) {
-+					NCONF_free(c2);
++					/* 同步替换全局 config：后续命令（如 req 查
++					 * distinguished_name）也走内嵌配置 */
++					if (config != NULL)
++						NCONF_free(config);
++					config = c2;
 +					return 1;
 +				}
 +				NCONF_free(c2);
@@ -44,7 +48,7 @@ diff -ruN base/apps/openssl/apps.c p-clean/apps/openssl/apps.c
  	return 1;
 diff -ruN base/apps/openssl/openssl.c p-clean/apps/openssl/openssl.c
 --- a/apps/openssl/openssl.c	2026-10-04 00:54:32.000000000 +0000
-+++ b/apps/openssl/openssl.c	2026-10-06 02:51:02.183602000 +0000
++++ b/apps/openssl/openssl.c	2026-10-06 03:28:41.655602000 +0000
 @@ -126,6 +126,14 @@
  #include <openssl/pem.h>
  #include <openssl/ssl.h>
@@ -83,7 +87,7 @@ diff -ruN base/apps/openssl/openssl.c p-clean/apps/openssl/openssl.c
  			    "WARNING: can't open config file: %s\n", p);
 diff -ruN base/crypto/conf/conf_sap.c p-clean/crypto/conf/conf_sap.c
 --- a/crypto/conf/conf_sap.c	2025-10-07 16:05:59.000000000 +0000
-+++ b/crypto/conf/conf_sap.c	2026-10-06 02:51:02.183602000 +0000
++++ b/crypto/conf/conf_sap.c	2026-10-06 03:28:41.655602000 +0000
 @@ -88,14 +88,10 @@
  	ERR_clear_error();
  	if (CONF_modules_load_file(NULL, openssl_config_name,
@@ -105,7 +109,7 @@ diff -ruN base/crypto/conf/conf_sap.c p-clean/crypto/conf/conf_sap.c
  	return;
 diff -ruN base/crypto/x509/x509_d2.c p-clean/crypto/x509/x509_d2.c
 --- a/crypto/x509/x509_d2.c	2024-03-25 07:32:31.000000000 +0000
-+++ b/crypto/x509/x509_d2.c	2026-10-06 02:51:02.179602000 +0000
++++ b/crypto/x509/x509_d2.c	2026-10-06 03:28:41.651602000 +0000
 @@ -62,6 +62,27 @@
  #include <openssl/crypto.h>
  #include <openssl/err.h>
