@@ -94,22 +94,25 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          # 只烘本架构的产物（tools/*/<arch>/ + 本架构 SUMS）：两个 leg 并发提交时，
-          # 整树烘烤会把对方刚提交的另一架构文件按"本 leg 检出时的旧快照"覆盖回去
-          # （2026-10 实锤：amd64 的 UPX 成果被 arm64 leg 的旧快照冲掉）。
+          # 只烘本架构的产物（baked 结构与 tools/ 根对齐，杜绝 tools/tools 双前缀 bug）。
+          # 两个 leg 并发提交时，整树烘烤会把对方刚提交的另一架构文件按"本 leg 检出时
+          # 的旧快照"覆盖回去（2026-10 实锤：amd64 的 UPX 成果被 arm64 leg 冲掉）。
           rm -rf /tmp/tools-baked && mkdir -p /tmp/tools-baked
-          for d in tools/*/"${{ matrix.arch }}"; do
-            [ -d "$d" ] || continue
-            mkdir -p "/tmp/tools-baked/$d"
-            cp -a "$d/." "/tmp/tools-baked/$d/"
-          done
-          cp -a "tools/SHA256SUMS.${{ matrix.arch }}" /tmp/tools-baked/ 2>/dev/null || true
+          (
+            cd tools || exit 1
+            for d in */"${{ matrix.arch }}"; do
+              [ -d "$d" ] || continue
+              mkdir -p "/tmp/tools-baked/$d"
+              cp -a "$d/." "/tmp/tools-baked/$d/"
+            done
+            cp "SHA256SUMS.${{ matrix.arch }}" /tmp/tools-baked/ 2>/dev/null || true
+          )
           for i in 1 2 3 4 5; do
             echo "第 $i 轮：重置到 origin/main 后铺回产物"
             git fetch origin main >/dev/null 2>&1
             git reset --hard origin/main >/dev/null 2>&1
             # 铺回本架构产物（覆盖式合并）：保住并发提交进来的新工具与另一架构的
-            # 更新；"reset 到最新 + 幂等重放"的核心意图不变（2026-10 两次实锤）。
+            # 更新；"reset 到最新 + 幂等重放"的核心意图不变（2026-10 三次实锤）。
             cp -a /tmp/tools-baked/. tools/
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
