@@ -26,3 +26,10 @@ html2text	grobian/html2text	2.3.0	HTML → 纯文本（C++；zig 工具链自编
 envsubst	gnu/gettext-runtime	0.26	环境变量替换（gettext 子包单独构建；-all-static 保静态）
 diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编译）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
+lowdown	kristapsdz/lowdown	3.2.1	Markdown → HTML/终端/roff（bmake 构建）
+hxselect	w3.org html-xml-utils	8.8	按 CSS 选择器提取 HTML/XML 元素（替代 cascadia）
+entr	eradman/entr	5.9	文件变化时执行命令（视 inode）
+csvquote	dbro/csvquote	0.1.5	CSV 逗号/换行保护（配合 awk/cut 双通管道）
+pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
+pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
+fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
