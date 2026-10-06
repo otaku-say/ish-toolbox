@@ -39,8 +39,8 @@
 | `pstree` | 进程树（ncurses 静态链，只交付 pstree） |  | 23.7 | — | — | ✅ 源码构建 |
 | `pv` | 管道流量监视器（进度/速率/ETA） | v1.7.24 | 1.7.24 | — | — | ✅ 最新 |
 | `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
-| `rage` | 现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产） | v0.12.1 | v0.12.1 | — | 1.4 MB | ✅ 最新 |
-| `rage-keygen` | rage 密钥生成（age-format identity/keypair） | v0.12.1 | v0.12.1 | — | 1.0 MB | ✅ 最新 |
+| `rage` | 现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产） | v0.12.1 | v0.12.1 | 1.2 MB | — | ✅ 最新 |
+| `rage-keygen` | rage 密钥生成（age-format identity/keypair） | v0.12.1 | v0.12.1 | 0.9 MB | — | ✅ 最新 |
 | `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | 1.8 MB | ✅ 最新 |
 | `scp` | SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议） |  | 10.5p1 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `sd` | 正则替换 | v1.1.0 | v1.1.0 | 0.7 MB | 0.8 MB | ✅ 最新 |
@@ -60,7 +60,7 @@
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.1 MB | — | ✅ 最新 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 41 个工具 · arm64 合计 16.2 MB · amd64 合计 18.2 MB
+共 41 个工具 · arm64 合计 18.2 MB · amd64 合计 15.8 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
