@@ -10,6 +10,9 @@
 # =============================================================================
 set -euo pipefail
 
+# 失败取证：静默区（configure/make 输出已重定向）失败时打印相关日志尾部
+trap 'rc=$?; echo "✗ 构建失败（line $LINENO rc=$rc）"; for f in llog zlog make.log inst.log scl.log cfg.log; do [ -f "$f" ] && { echo "==== tail $f ===="; tail -n 40 "$f" | cut -c1-220; }; done; exit $rc' ERR
+
 ARCH="${ARCH:?用法: ARCH=arm64|amd64 bash scripts/build/python3.sh}"
 case "$ARCH" in
   amd64) TGT=x86_64-linux-musl;  STRIP=strip; MULTIARCH=x86_64-linux-gnu ;;
