@@ -117,3 +117,24 @@ latest_from_listing() {  # <目录URL> <文件名正则>
   curl -fsSL --max-time 60 "$1" 2>/dev/null \
     | grep -oE "$2" | sort -V | tail -1
 }
+
+# ── GNU 源可达性设施（2026-10·CI 侧探针实测）──────────────────────────
+# ftp.gnu.org / ftpmirror.gnu.org 在 GitHub runner 上不可达（000 ERR）；
+# kernel.org / 清华 / 阿里 实测 200。取 GNU 官方包一律走这条统一链，
+# 不要在每个脚本里散写（patch/envsubst/pstree 都因此翻过车）。
+GNU_MIRRORS="https://mirrors.kernel.org/gnu https://mirrors.tuna.tsinghua.edu.cn/gnu https://mirrors.aliyun.com/gnu https://ftp.gnu.org/gnu"
+fetch_gnu() {  # <镜像内路径，如 patch/patch-2.8.tar.gz> <解压目录名> <目标名>
+  local m
+  for m in $GNU_MIRRORS; do
+    fetch_url "$m/$1" "$2" "$3" && return 0
+  done
+  return 1
+}
+latest_gnu() {  # <子目录名，如 patch> <文件名正则>；依次镜像查 listing
+  local m v
+  for m in $GNU_MIRRORS; do
+    v=$(latest_from_listing "$m/$1/" "$2")
+    [ -n "$v" ] && { printf '%s\n' "$v"; return 0; }
+  done
+  return 1
+}
