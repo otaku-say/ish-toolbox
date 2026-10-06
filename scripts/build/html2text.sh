@@ -13,7 +13,9 @@ chmod +x /tmp/zigcxx /tmp/zigcc-html
 
 if fetch_url "https://github.com/grobian/html2text/releases/download/v$VER/html2text-$VER.tar.gz" "html2text-$VER" html2text; then
   ( cd /tmp/build/html2text \
-    && CC=/tmp/zigcc-html CXX=/tmp/zigcxx CFLAGS="$CSIZE" CXXFLAGS="$CSIZE" LDFLAGS="$CLINK" \
+    && ac_cv_func_malloc_0_nonnull=yes ac_cv_func_realloc_0_nonnull=yes \
+       gl_cv_func_malloc_0_nonnull=yes gl_cv_func_realloc_0_nonnull=yes \
+       CC=/tmp/zigcc-html CXX=/tmp/zigcxx CFLAGS="$CSIZE" CXXFLAGS="$CSIZE" LDFLAGS="$CLINK" \
        ./configure --host="$T" --disable-dependency-tracking >/tmp/c-h2t 2>&1 \
     && make -j"$(nproc)" >/tmp/m-h2t 2>&1 && cp html2text /tmp/build/h2t.bin ) \
     && UPX=0 install_verified /tmp/build/h2t.bin html2text \
