@@ -17,6 +17,12 @@ ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译�
 socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
-drill	NLnetLabs/ldns	1.9.2	DNS 查询与 DNSSEC 签名链验证（dig 替代；全静态自编译，LibreSSL 后端）
 tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
 chronic	otaku-say/ish-toolbox	1.3	命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固）
+strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机）
+head-tail	otaku-say/ish-toolbox	1.0	长日志折叠：头 30 + 尾 30 行（60 行内原样；省 Context Token）
+jo	jpmens/jo	1.9	从命令行参数生成 JSON（自编译静态；tag 无 v 前缀）
+html2text	grobian/html2text	2.3.0	HTML → 纯文本（C++；zig 工具链自编译）
+envsubst	gnu/gettext-runtime	0.26	环境变量替换（gettext 子包单独构建；-all-static 保静态）
+diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编译）
+xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
