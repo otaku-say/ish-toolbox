@@ -88,7 +88,13 @@ while IFS='|' read -r cmd repo desc flt; do
     *)        cp "$W/p" "$W/x/$cmd" ;;
   esac
 
-  B=$(find "$W/x" -type f -name "$cmd" ! -name '*.md' 2>/dev/null | head -1)
+  # 主二进制选择：优先认 ELF 魔数（7f 45 4c 46）——deb/tar 里常有与命令同名的
+  # 补全脚本/文档（如 rage 的 bash-completion），find 的遍历顺序不定，会抓错
+  # （2026-10 实锤：rage 抓到补全脚本 e_machine=6c）。找不到 ELF 才退回旧启发式。
+  B=""
+  for f in $(find "$W/x" -type f -name "$cmd" ! -name '*.md' 2>/dev/null); do
+    if [ "$(od -An -tx1 -N4 "$f" 2>/dev/null | tr -d ' \n')" = "7f454c46" ]; then B="$f"; break; fi
+  done
   [ -z "$B" ] && B=$(find "$W/x" -type f -perm -u+x -size +100k 2>/dev/null | head -1)
   [ -f "$B" ] || { echo "  ✗ $cmd 包内找不到主二进制"; continue; }
   chmod +x "$B"
