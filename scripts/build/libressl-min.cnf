@@ -1,0 +1,19 @@
+# 最小 LibreSSL 兼容配置（ish-toolbox 静态 openssl 的 OPENSSLDIR=/usr/etc/ssl 兼容层）
+# 目的：① 避免误读 Alpine libcrypto3 的 OpenSSL3 式配置（含 providers 模块，LibreSSL 不认）
+#       ② 让默认证书路径 /usr/etc/ssl/cert.pem -> /etc/ssl/certs/ca-certificates.crt 生效
+# 用户如需自定义配置，用 -config 或 OPENSSL_CONF 覆盖即可。
+openssl_conf = openssl_init
+
+[ openssl_init ]
+oid_section = new_oids
+
+[ new_oids ]
+
+[ req ]
+default_bits = 2048
+default_md = sha256
+distinguished_name = req_distinguished_name
+string_mask = utf8only
+
+[ req_distinguished_name ]
+CN = Common Name
