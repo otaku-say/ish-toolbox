@@ -25,7 +25,6 @@ fd|sharkdp/fd|按模式找文件
 sd|chmln/sd|正则替换
 su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权限降级）
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
-cascadia|suntong/cascadia|HTML CSS 选择器提取（stdin/stdout 管道）
 rage|str4d/rage|现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen|str4d/rage|rage 密钥生成（age-format identity/keypair）
 '
