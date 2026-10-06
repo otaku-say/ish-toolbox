@@ -23,7 +23,7 @@ strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字�
 head-tail	otaku-say/ish-toolbox	1.0	长日志折叠：头 30 + 尾 30 行（60 行内原样；省 Context Token）
 jo	jpmens/jo	1.9	从命令行参数生成 JSON（自编译静态；tag 无 v 前缀）
 html2text	grobian/html2text	2.3.0	HTML → 纯文本（C++；zig 工具链自编译）
-envsubst	gnu/gettext-runtime	0.26	环境变量替换（gettext 子包单独构建；-all-static 保静态）
+envsubst	gnu/gettext-runtime	1.0	环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static）
 diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编译）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
 lowdown	kristapsdz/lowdown	3.2.1	Markdown → HTML/终端/roff（bmake 构建）
