@@ -98,12 +98,17 @@ fetch() {  # <owner/repo> <dir>
 }
 
 # 任意 URL 的 tarball（官方 release 包，自带 configure）
+# ⚠ 按扩展名选压缩格式：曾一律 `tar xzf`，.tar.xz 会在解压步静默失败并
+#   被报成"下载失败"（curl 其实已成功）——pstree/envsubst 双案实锤，2026-10
 fetch_url() {  # <url> <解压目录名> <目标名>
   local d="/tmp/build/$3"; [ -d "$d" ] && return 0
-  curl -fsSL --max-time 300 "$1" -o /tmp/x.tgz 2>/dev/null \
-    && tar xzf /tmp/x.tgz -C /tmp/build 2>/dev/null \
-    && mv "/tmp/build/$2" "$d" 2>/dev/null && return 0
-  echo "  ! 下载失败 $1"; return 1
+  curl -fsSL --max-time 300 "$1" -o /tmp/x.tgz 2>/dev/null || { echo "  ! 下载失败 $1"; return 1; }
+  { case "$1" in
+      *.tar.xz) tar xJf /tmp/x.tgz -C /tmp/build ;;
+      *)        tar xzf /tmp/x.tgz -C /tmp/build ;;
+    esac; } 2>/dev/null || { echo "  ! 解压失败（格式？）$1"; return 1; }
+  mv "/tmp/build/$2" "$d" 2>/dev/null && return 0
+  echo "  ! 目录名不符（期望 $2）$1"; return 1
 }
 
 # 查上游最新版本对应的 tarball URL（有些项目不发 GitHub Release，
