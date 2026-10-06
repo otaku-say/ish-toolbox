@@ -25,6 +25,9 @@ for V in 1.0 0.26; do
   if build_gt; then GT_OK=1; echo "  gettext 采用: $V"; break; fi
   echo "  ! gettext $V 构建失败，尝试下一版本"
   tail -8 /tmp/m-gt 2>/dev/null | sed 's/^/      | /'
+  echo "  -- 失败步骤追踪（sh -x 重放，输出尾 40 行）--"
+  ( cd /tmp/build/gettext/gettext-runtime 2>/dev/null && make -j1 LDFLAGS="-no-pie -all-static" SHELL="sh -x" >/tmp/m-gt2 2>&1 )
+  tail -40 /tmp/m-gt2 2>/dev/null | sed 's/^/      | /'
 done
 # ③ Debian 池兜底（GNU 侧获取失败时）
 if [ -z "$GT_OK" ]; then
