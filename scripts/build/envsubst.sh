@@ -11,9 +11,12 @@ VER=$(latest_gnu gettext 'gettext-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz' || true)
 echo "  gettext 上游最新: ${VER:-（listing 不可用，转候选版本）}"
 
 build_gt() {  # 在已解压的 /tmp/build/gettext 上构建
+  # ⚠ --disable-libasprintf：libasprintf 是 C++ 部件；交叉环境若装有宿主 g++，
+  #   configure 会启用它并用宿主 g++（glibc 头）去编，撞 gnulib 的 off64_t
+  #   重复定义 —— envsubst 用不到它，直接关（2026-10 CI sh -x 追踪实锤）。
   ( cd /tmp/build/gettext/gettext-runtime \
     && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
-       ./configure --host="$T" --disable-dependency-tracking >/tmp/c-gt 2>&1 \
+       ./configure --host="$T" --disable-dependency-tracking --disable-libasprintf >/tmp/c-gt 2>&1 \
     && make -j1 LDFLAGS="-no-pie -all-static" >/tmp/m-gt 2>&1 \
     && cp src/envsubst /tmp/build/envsubst.bin )
 }
@@ -40,5 +43,5 @@ if [ -z "$GT_OK" ]; then
 fi
 [ -z "$GT_OK" ] && { echo "  ✗ envsubst: gettext 各版本均未能构建"; exit 0; }
 
-UPX=0 install_verified /tmp/build/envsubst.bin envsubst \
+install_verified /tmp/build/envsubst.bin envsubst \
   || echo "  ✗ envsubst: 产物验证失败"
