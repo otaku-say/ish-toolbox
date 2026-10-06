@@ -50,7 +50,7 @@ echo "=== [$ARCH] 1/8 zlib（目标架构静态库）==="
 if [ ! -f "$WORK/zlib-prefix/lib/libz.a" ]; then
   rm -rf "$WORK/zlib"; mkdir -p "$WORK/zlib"; cd "$WORK/zlib"
   tar xzf "$SRC/zlib-$ZLIBV.tar.gz" --strip-components=1
-  CC="zig cc -target $TGT" ./configure --static --prefix="$WORK/zlib-prefix" > zlog 2>&1
+  CFLAGS="-Os -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables" CC="zig cc -target $TGT" ./configure --static --prefix="$WORK/zlib-prefix" > zlog 2>&1
   make -j"$JOBS" >> zlog 2>&1
   make install >> zlog 2>&1
 fi
@@ -60,7 +60,7 @@ if [ ! -f "$WORK/sqlite-prefix/lib/libsqlite3.a" ]; then
   rm -rf "$WORK/sqlite"; mkdir -p "$WORK/sqlite"; cd "$WORK/sqlite"
   unzip -q "$SRC/sqlite.zip"
   cd sqlite-amalgamation-*
-  zig cc -target "$TGT" -O2 -c sqlite3.c -o sqlite3.o
+  zig cc -target "$TGT" -Os -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -c sqlite3.c -o sqlite3.o
   ar rcs libsqlite3.a sqlite3.o
   mkdir -p "$WORK/sqlite-prefix/include" "$WORK/sqlite-prefix/lib/pkgconfig"
   cp sqlite3.h sqlite3ext.h "$WORK/sqlite-prefix/include/"
@@ -82,7 +82,7 @@ if [ ! -f "$WORK/libressl-prefix/lib/libssl.a" ]; then
   tar xzf "$SRC/libressl-$LSVER.tar.gz" --strip-components=1
   patch -p1 < "$HERE/libressl-ishfix.patch"
   sh "$HERE/gen-embed.sh" /etc/ssl/certs/ca-certificates.crt "$HERE/libressl-min.cnf"
-  CC="zig cc -target $TGT" ./configure --host="$TGT" --build=x86_64-linux-gnu \
+  CC="zig cc -target $TGT" CFLAGS="-Os -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables" ./configure --host="$TGT" --build=x86_64-linux-gnu \
       --prefix="$WORK/libressl-prefix" --disable-shared --enable-static \
       --with-openssldir=/etc/ssl > llog 2>&1
   make -j"$JOBS" >> llog 2>&1
@@ -99,6 +99,33 @@ sed -i 's|^#if OPENSSL_VERSION_NUMBER < 0x30300000L$|#if OPENSSL_VERSION_NUMBER 
 # 4.3 getpath.py：静态布局适配（无 lib-dynload 不再告警；getpath 冻结进二进制）
 sed -i 's|            exec_prefix = search_up(executable_dir, PLATSTDLIB_LANDMARK, test=isdir)|&\n        if not exec_prefix and executable_dir:\n            # iSH 适配：静态布局（无 lib-dynload）时降级为 stdlib 子目录地标\n            exec_prefix = search_up(executable_dir, STDLIB_SUBDIR, test=isdir)|' Modules/getpath.py
 sed -i 's|        if not exec_prefix or not isdir(joinpath(exec_prefix, PLATSTDLIB_LANDMARK)):|        if not exec_prefix or (not isdir(joinpath(exec_prefix, PLATSTDLIB_LANDMARK)) and not isdir(joinpath(exec_prefix, STDLIB_SUBDIR))):|' Modules/getpath.py
+# 4.3b 单文件变体：警告静默 + sys.path 自追加可执行文件
+python3 - <<'PYEOF'
+g = "Modules/getpath.py"
+s = open(g, encoding="utf-8").read()
+for o in ["warn('Could not find platform independent libraries <prefix>')",
+          "warn('Could not find platform dependent libraries <exec_prefix>')",
+          "warn('Consider setting $PYTHONHOME to <prefix>[:<exec_prefix>]')"]:
+    s = s.replace(o, "pass  # iSH single-file")
+old = ("    config['module_search_paths'] = pythonpath\n"
+       "    config['module_search_paths_set'] = 1\n"
+       "\n"
+       "\n"
+       "# ******************************************************************************\n"
+       "# POSIX prefix/exec_prefix QUIRKS")
+new = ("    if executable and executable not in pythonpath:\n"
+       "        pythonpath.append(executable)\n"
+       "    config['module_search_paths'] = pythonpath\n"
+       "    config['module_search_paths_set'] = 1\n"
+       "\n"
+       "\n"
+       "# ******************************************************************************\n"
+       "# POSIX prefix/exec_prefix QUIRKS")
+assert s.count(old) == 1, "self-append anchor"
+s = s.replace(old, new)
+open(g, "w", encoding="utf-8").write(s)
+print("single-file getpath edits ok")
+PYEOF
 # 4.4 模块表：白名单外一律裁剪（模板层；保留 _ssl/_hashlib/_sqlite3/zlib）
 for name in _ctypes _uuid _lzma _bz2 _gdbm _dbm _ndbm _curses _curses_panel readline _tkinter nis ossaudiodev _crypt _lsprof audioop xxlimited xxlimited_35 _xxsubinterpreters _xxinterpchannels; do
   sed -i -E "s|^(@[A-Z0-9_]+@)?${name}[[:space:]]|#\\1${name} |" Modules/Setup.stdlib.in
@@ -112,7 +139,7 @@ echo "=== [$ARCH] 5/8 configure ==="
 mkdir -p "$WORK/python/build"; cd "$WORK/python/build"
 PKG_CONFIG_PATH="$WORK/sqlite-prefix/lib/pkgconfig:${PKG_CONFIG_PATH:-}" \
 ac_cv_buggy_getaddrinfo=no ac_cv_file__dev_ptmx=yes ac_cv_file__dev_ptc=no \
-CC="zig cc -target $TGT" LDFLAGS="-static" \
+CC="zig cc -target $TGT" CFLAGS="-Os -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables" LDFLAGS="-static -Wl,--gc-sections" \
 ../configure --host="$TGT" --build=x86_64-linux-gnu \
     --with-build-python="$HOSTPY" \
     --with-openssl="$WORK/libressl-prefix" --with-openssl-rpath=no \
@@ -173,7 +200,7 @@ done
 cp -p "$LIB_SRC"/_sysconfigdata*.py "$STAGE/" 2>/dev/null || echo "  ⚠ 缺 _sysconfigdata*.py"
 
 find "$STAGE" -type d \( -name "__pycache__" -o -name "test" -o -name "tests" \) -prune -exec rm -rf {} +
-"$PYBIN" -OO -m compileall -b -q "$STAGE"
+PYTHONNODEBUGRANGES=1 "$PYBIN" -OO -m compileall -b -q "$STAGE"
 find "$STAGE" -type f -name "*.py" -delete
 
 rm -rf "$SLIM"
@@ -182,34 +209,48 @@ cp -p "$PYBIN" "$SLIM/bin/python3.12"
 ln -sf python3.12 "$SLIM/bin/python3"
 ( cd "$STAGE" && zip -q -r -9 "$SLIM/lib/python312.zip" . )
 
-echo "=== [$ARCH] 8/8 strip + UPX + 打包 ==="
+echo "=== [$ARCH] 8/8 strip + UPX + 单文件组装 ==="
 ("$STRIP" --strip-debug "$SLIM/bin/python3.12" 2>/dev/null) || strip --strip-debug "$SLIM/bin/python3.12" 2>/dev/null || true
 
-if [ "${UPX:-1}" = 1 ] && ! command -v upx >/dev/null 2>&1; then
-  echo "  ⚠ 未找到 upx（跳过压缩，产物会更大；CI 应预装 upx 4.2.4）"
-fi
-if [ "${UPX:-1}" = 1 ] && command -v upx >/dev/null 2>&1; then
-  cp "$SLIM/bin/python3.12" /tmp/py3-preupx
-  if upx --best -q "$SLIM/bin/python3.12" 2>/dev/null; then
-    if ! "$SLIM/bin/python3" -V >/dev/null 2>&1; then
-      cp -f /tmp/py3-preupx "$SLIM/bin/python3.12"
-      echo "  ⚠ UPX 后无法运行（缺 qemu?），已回退未压缩"
+if [ "${UPX:-1}" = 1 ]; then
+  if command -v upx >/dev/null 2>&1; then
+    upx --best -q "$SLIM/bin/python3.12" || { echo "✗ UPX 失败"; exit 1; }
+    if ! "$SLIM/bin/python3.12" -V >/dev/null 2>&1; then
+      echo "✗ UPX 后无法运行（缺 qemu? 或压坏）"; exit 1
     fi
   else
-    cp -f /tmp/py3-preupx "$SLIM/bin/python3.12"
-    echo "  ⚠ UPX 失败，已回退未压缩"
+    echo "  ⚠ 未找到 upx（跳过压缩，体积将明显变大）"
   fi
-  rm -f /tmp/py3-preupx
 fi
 
-# 零告警自检（硬性：任何启动告警都不允许交付）
-W=$("$SLIM/bin/python3" -c 'pass' 2>&1) || true
+ZIP="$SLIM/lib/python312.zip"
+if command -v advzip >/dev/null 2>&1; then
+  B=$(wc -c < "$ZIP")
+  advzip -z4 "$ZIP" >/dev/null 2>&1 || true
+  echo "  zip 再压: $B -> $(wc -c < "$ZIP")"
+else
+  echo "  ⚠ 未找到 advzip（跳过 zopfli 再压；CI 应预装 advancecomp）"
+fi
+
+# 组装单文件：UPX 后的二进制 + 追加 zip（getpath 补丁已把自身加入 sys.path）
+mkdir -p "$OUTDIR"
+cat "$SLIM/bin/python3.12" "$ZIP" > "$OUTDIR/python3"
+chmod +x "$OUTDIR/python3"
+rm -f "$OUTDIR/python3.tar.gz"
+
+# 硬校验①：零告警
+W=$("$OUTDIR/python3" -c 'pass' 2>&1) || true
 if [ -n "$W" ]; then
   echo "✗ 启动存在告警，拒绝交付："; echo "$W" | head -5; exit 1
 fi
+# 硬校验②：功能冒烟（TLS + sqlite）
+OUT=$("$OUTDIR/python3" -c 'import json, ssl, sqlite3, urllib.request as u; print(u.urlopen("https://example.com", timeout=20).status)' 2>&1) || true
+case "$OUT" in
+  *200*) echo "  冒烟: $OUT" ;;
+  *) echo "✗ 冒烟失败：$OUT"; exit 1 ;;
+esac
 
-tar czf "$OUTDIR/python3.tar.gz" -C "$SLIM" .
-cp "$OUTDIR/python3.tar.gz" "/tmp/python3-$ARCH.tar.gz"
-echo "=== [$ARCH] 完成 ==="
-ls -la "$OUTDIR/python3.tar.gz" | awk '{print $5, $NF}'
-sha256sum "$OUTDIR/python3.tar.gz"
+cp "$OUTDIR/python3" "/tmp/python3-$ARCH-single"
+echo "=== [$ARCH] 完成（单文件）==="
+ls -la "$OUTDIR/python3" | awk '{print $5, $NF}'
+sha256sum "$OUTDIR/python3"

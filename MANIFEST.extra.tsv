@@ -35,4 +35,4 @@ fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
-python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；白名单瘦身+UPX，解包即用）
+python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython 单文件（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；约 5.5MB 单二进制，启动约 0.3s）
