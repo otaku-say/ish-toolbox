@@ -39,7 +39,7 @@
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pstree` | 进程树（ncurses 静态链，只交付 pstree） |  | 23.7 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pv` | 管道流量监视器（进度/速率/ETA） | v1.7.24 | 1.7.24 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `python3` | 全静态 CPython（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；白名单瘦身+UPX，解包即用） |  | 3.12.15 | 5.3 MB | 5.2 MB | ✅ 源码构建 |
+| `python3` | 全静态 CPython 单文件（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；约 5.5MB 单二进制，启动约 0.3s） |  | 3.12.15 | 5.3 MB | 5.2 MB | ✅ 源码构建 |
 | `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
 | `rage` | 现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产） | v0.12.1 | v0.12.1 | 1.2 MB | 1.4 MB | ✅ 最新 |
 | `rage-keygen` | rage 密钥生成（age-format identity/keypair） | v0.12.1 | v0.12.1 | 0.9 MB | 1.0 MB | ✅ 最新 |

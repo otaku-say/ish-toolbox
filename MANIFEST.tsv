@@ -20,7 +20,7 @@ openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/�
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
-python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；白名单瘦身+UPX，解包即用）
+python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython 单文件（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；约 5.5MB 单二进制，启动约 0.3s）
 qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
 rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）
