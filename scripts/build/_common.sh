@@ -64,6 +64,9 @@ gnu_arm64_cc() {
   fi
   command -v aarch64-linux-gcc >/dev/null 2>&1 || return 1
   CROSS_CC=aarch64-linux-gcc
+  # strip 优先用与编译器同源的工具链版（版本随链固定，消除跨环境微差）
+  command -v aarch64-linux-strip >/dev/null 2>&1 && STRIP=aarch64-linux-strip
+  return 0
 }
 
 # ── 三判据验证后落地（含可选的 UPX 压缩）────────────────────────
