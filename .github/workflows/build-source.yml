@@ -66,6 +66,38 @@ jobs:
         with:
           version: 0.13.0
 
+      - name: GNU musl 交叉工具链（arm64：bash/gawk/envsubst/patch/busybox 的"完整 GNU"构建）
+        # Bootlin 预编译链（GCC 12 + musl，完整 GNU 工具链）；musl.cc 为备用来源。
+        # 安装后统一前缀 aarch64-linux-*（两个来源命名不同）并加入 PATH；
+        # 构建脚本通过 gnu_arm64_cc（_common.sh）或 /opt 兜底搜索使用。
+        if: matrix.arch == 'arm64'
+        run: |
+          set -e
+          T=/opt/musl-a64; mkdir -p "$T"
+          ok=0
+          if curl -fsSL --max-time 300 -o /tmp/a64.tbz \
+               "https://toolchains.bootlin.com/downloads/releases/toolchains/aarch64/tarballs/aarch64--musl--stable-2024.02-1.tar.bz2"; then
+            tar xjf /tmp/a64.tbz -C /tmp
+            cp -a /tmp/aarch64--musl--stable-2024.02-1/. "$T/" && ok=1
+          fi
+          if [ "$ok" = 0 ]; then
+            curl -fsSL --max-time 300 -o /tmp/a64.tgz "https://musl.cc/aarch64-linux-musl-cross.tgz"
+            tar xzf /tmp/a64.tgz -C /tmp
+            cp -a /tmp/aarch64-linux-musl-cross/. "$T/" && ok=1
+          fi
+          [ "$ok" = 1 ] || { echo "musl 交叉链安装失败"; exit 1; }
+          cd "$T/bin"
+          for c in gcc g++ ld ar strip nm; do
+            if [ ! -e "aarch64-linux-$c" ]; then
+              for cand in "aarch64-buildroot-linux-musl-$c" "aarch64-linux-musl-$c"; do
+                [ -e "$cand" ] && ln -s "$cand" "aarch64-linux-$c" && break
+              done
+            fi
+          done
+          [ -x "$T/bin/aarch64-linux-gcc" ] || { echo "aarch64-linux-gcc 缺失"; exit 1; }
+          echo "$T/bin" >> "$GITHUB_PATH"
+          "$T/bin/aarch64-linux-gcc" --version | head -1
+
       - name: 装 UPX（锁定 4.2.4；升级前必须在 iSH 真机验证）
         # ⚠ 锁定原因（2026-10 实测）：UPX 5.2.1 的 arm64 压缩产物在 iSH 上 exec 即段错误
         #   （7/9 抽样 + default/-1/--lzma/--no-reloc/--no-align/-f 全崩；其产物 ELF 结构

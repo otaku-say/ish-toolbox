@@ -14,6 +14,19 @@ case "$ARCH" in
   arm64) T=aarch64-unknown-linux-musl; EM=b7; CROSS_CC=/tmp/zigcc ;;
   *) echo "✗ 未知架构 $ARCH"; exit 1 ;;
 esac
+
+# 跨架构 strip：宿主 strip 只认本机架构（对 aarch64 报 file format not
+# recognized，曾静默失败导致 arm64 产物未剥离）→ arm64 用交叉 binutils
+# （CI 已装 gcc-aarch64-linux-gnu），回退 llvm-strip；都没有则跳过不阻断。
+# 可用环境变量 STRIP=... 显式覆盖。
+if [ -z "${STRIP:-}" ]; then
+  case "$ARCH" in
+    arm64) for c in aarch64-linux-gnu-strip llvm-strip; do
+             command -v "$c" >/dev/null 2>&1 && { STRIP="$c"; break; }
+           done ;;
+    *)     command -v strip >/dev/null 2>&1 && STRIP=strip ;;
+  esac
+fi
 K=$(echo "$T" | tr 'a-z-' 'A-Z_')
 export CC_$K="$CROSS_CC" CARGO_TARGET_${K}_LINKER=rust-lld
 [ "$ARCH" = amd64 ] && export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc
@@ -37,6 +50,22 @@ if [ "$ARCH" = arm64 ] && [ ! -x /tmp/zigcc ]; then
   chmod +x /tmp/zigcc
 fi
 
+# ── 可选：arm64 切换到完整 GNU 交叉链（Bootlin aarch64--musl，GCC 12）──
+# 仅「必须完整 GNU」的脚本显式调用；其余工具保持 zigcc（LLVM）不动。
+# CI 由 workflow 安装到 /opt/musl-a64 并加入 PATH；此处提供本地兜底搜索。
+# 调用约定：gnu_arm64_cc || { echo "  ✗ <tool>: 缺 aarch64-linux-gcc"; exit 0; }
+gnu_arm64_cc() {
+  [ "$ARCH" = arm64 ] || return 0
+  if ! command -v aarch64-linux-gcc >/dev/null 2>&1; then
+    local d
+    for d in /opt/musl-a64/bin /opt/aarch64--musl--*/bin /opt/aarch64-linux-musl-cross/bin; do
+      if [ -x "$d/aarch64-linux-gcc" ]; then PATH="$d:$PATH"; export PATH; break; fi
+    done
+  fi
+  command -v aarch64-linux-gcc >/dev/null 2>&1 || return 1
+  CROSS_CC=aarch64-linux-gcc
+}
+
 # ── 三判据验证后落地（含可选的 UPX 压缩）────────────────────────
 # UPX 默认开启（UPX=0 可关闭）。实测 UPX 的自解压 stub **不引入 PT_INTERP**，
 # 压缩后三判据（无 INTERP / 无 NEEDED / 架构正确）依然成立，
@@ -58,7 +87,7 @@ install_verified() {  # <路径> <命令名>
   readelf -d "$b" 2>/dev/null | grep -q NEEDED  && { echo "  ✗ $n 非静态(NEEDED)";   return 1; }
   local em; em=$(od -An -tx1 -j18 -N1 "$b" | tr -d ' \n')
   [ "$em" = "$EM" ] || { echo "  ✗ $n 架构不符($em≠$EM)"; return 1; }
-  strip --strip-all "$b" 2>/dev/null || true
+  if [ -n "${STRIP:-}" ]; then "$STRIP" --strip-all "$b" 2>/dev/null || true; fi
   local pre; pre=$(wc -c < "$b")
   local note=""
   if [ "$UPX" = 1 ] && command -v upx >/dev/null 2>&1; then
@@ -105,6 +134,7 @@ fetch_url() {  # <url> <解压目录名> <目标名>
   curl -fsSL --max-time 300 "$1" -o /tmp/x.tgz 2>/dev/null || { echo "  ! 下载失败 $1"; return 1; }
   { case "$1" in
       *.tar.xz) tar xJf /tmp/x.tgz -C /tmp/build ;;
+      *.tar.bz2) tar xjf /tmp/x.tgz -C /tmp/build ;;
       *)        tar xzf /tmp/x.tgz -C /tmp/build ;;
     esac; } 2>/dev/null || { echo "  ! 解压失败（格式？）$1"; return 1; }
   mv "/tmp/build/$2" "$d" 2>/dev/null && return 0

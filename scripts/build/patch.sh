@@ -6,6 +6,11 @@
 # 统一镜像链（kernel.org / 清华 / 阿里 / 官方兜底）。
 . "$(dirname "$0")/_common.sh"
 
+# ── arm64：必须完整 GNU 交叉链（Bootlin aarch64--musl；CI 由 workflow 安装）──
+if [ "$ARCH" = arm64 ]; then
+  gnu_arm64_cc || { echo "  ✗ patch: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
+fi
+
 VER=$(latest_gnu patch 'patch-[0-9]+\.[0-9]+\.tar\.gz' || true)
 [ -z "$VER" ] && { echo "  ! patch 版本查询失败"; exit 0; }
 echo "  patch 上游最新: $VER"

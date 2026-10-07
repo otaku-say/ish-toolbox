@@ -6,6 +6,11 @@
 # ⚠ 构建用 -j1：gettext 的 gnulib 生成链在并行 make 下有竞态（2026-10 CI 实锤嫌疑）。
 . "$(dirname "$0")/_common.sh"
 
+# ── arm64：必须完整 GNU 交叉链（Bootlin aarch64--musl；CI 由 workflow 安装）──
+if [ "$ARCH" = arm64 ]; then
+  gnu_arm64_cc || { echo "  ✗ envsubst: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
+fi
+
 GT_OK=""
 VER=$(latest_gnu gettext 'gettext-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz' || true)
 echo "  gettext 上游最新: ${VER:-（listing 不可用，转候选版本）}"

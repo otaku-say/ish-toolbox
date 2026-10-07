@@ -9,6 +9,11 @@
 #   ④ 自带 --csv 模式（5.3+），Agent 处理 CSV 的利器
 . "$(dirname "$0")/_common.sh"
 
+# ── arm64：必须完整 GNU 交叉链（Bootlin aarch64--musl；CI 由 workflow 安装）──
+if [ "$ARCH" = arm64 ]; then
+  gnu_arm64_cc || { echo "  ✗ gawk: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
+fi
+
 fetch_gnu "gawk/gawk-5.4.1.tar.xz" "gawk-5.4.1" gawksrc \
   || { echo "  ✗ gawk: 下载失败（_common 镜像链均不可达）"; exit 0; }
 ( cd /tmp/build/gawksrc \

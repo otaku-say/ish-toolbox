@@ -10,6 +10,13 @@
 # —— 与 pstree.sh/tmux.sh 共用 /tmp/ncurses-build-$ARCH 缓存。
 . "$(dirname "$0")/_common.sh"
 
+# ── arm64：必须完整 GNU 交叉链（Bootlin aarch64--musl；CI 由 workflow 安装）──
+# gnu_arm64_cc 覆盖 _common.sh 的 zigcc 默认值；ncurses 依赖同用此链
+# （换链后需清 /tmp/ncurses-build-$ARCH 缓存，CI 全新环境天然无缓存）
+if [ "$ARCH" = arm64 ]; then
+  gnu_arm64_cc || { echo "  ✗ bash: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
+fi
+
 # ── 依赖：ncurses（readline 需要；与 pstree.sh 共用缓存）──────────
 NCVER=6.5
 NCD="/tmp/ncurses-build-$ARCH"

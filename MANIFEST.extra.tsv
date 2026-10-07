@@ -36,3 +36,4 @@ tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补�
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
 python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython 单文件（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；约 5.5MB 单二进制，启动约 0.3s）
+busybox	busybox/busybox	1.38.0	瑞士军刀（自编译，上游只发源码，全静态单文件）
