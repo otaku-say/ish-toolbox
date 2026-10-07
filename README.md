@@ -18,13 +18,14 @@
 <!-- TABLE:START -->
 | 工具 | 用途 | 上游最新 | 仓库版本 | arm64 | amd64 | 状态 |
 |---|---|---|---|---|---|---|
-| `bash` | Bash 5.3 全静态（readline 内建） |  | 5.3 | 0.7 MB | 0.6 MB | ✅ 源码构建 |
+| `bash` | Bash 5.3 全静态（readline 内建） |  | 5.3 | 0.6 MB | 0.6 MB | ✅ 源码构建 |
+| `busybox` | 瑞士军刀（自编译，上游只发源码，全静态单文件） |  | 1.38.0 | 0.7 MB | 0.6 MB | ✅ 源码构建 |
 | `chronic` | 命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固） |  | 1.3 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `csvquote` | CSV 逗号/换行保护（配合 awk/cut 双通管道） | v0.1.5 | 0.1.5 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
 | `diffstat` | diff 统计（Dickey 原版，自编译） |  | 1.69 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `entr` | 文件变化时执行命令（视 inode） |  | 5.9 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
-| `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.0 MB | 0.2 MB | ✅ 源码构建 |
+| `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.2 MB | 0.2 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
 | `fzy` | 模糊查找器（-e 非交互模式对 Agent 友好） | v1.1 | 1.1 | 0.0 MB | 0.0 MB | ✅ 最新 |
@@ -63,7 +64,7 @@
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 44 个工具 · arm64 合计 24.7 MB · amd64 合计 25.5 MB
+共 45 个工具 · arm64 合计 25.4 MB · amd64 合计 26.1 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
