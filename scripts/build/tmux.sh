@@ -1,5 +1,5 @@
 #!/bin/bash
-# tmux.sh —— tmux 3.7c 全静态（依赖链：ncurses / libevent 2.1.13 / utf8proc 2.12）
+# tmux.sh —— tmux 3.8 全静态（依赖链：ncurses / libevent 2.1.13 / utf8proc 2.12）
 #
 # 配方要点（沙箱原型 + iSH 真机全流程验证）：
 #   ① configure 无条件查 yacc → CI 必须装 bison（release tarball 也查！已加进 workflow apt）
@@ -64,7 +64,7 @@ fi
 
 # ── 主构建 ─────────────────────────────────────────────────
 PATCH="$(cd "$(dirname "$0")" && pwd)/tmux-ishfix.patch"
-fetch_url "https://github.com/tmux/tmux/releases/download/3.7c/tmux-3.7c.tar.gz" "tmux-3.7c" tmuxsrc \
+fetch_url "https://github.com/tmux/tmux/releases/download/3.8/tmux-3.8.tar.gz" "tmux-3.8" tmuxsrc \
   || { echo "  ✗ tmux: 下载失败"; exit 0; }
 ( cd /tmp/build/tmuxsrc \
   && ( grep -q 'iSH: 不支持 SCM_RIGHTS' server-client.c || patch -p1 --batch < "$PATCH" >/tmp/p-tm 2>&1 ) \
