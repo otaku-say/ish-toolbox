@@ -68,15 +68,15 @@
 | `tmux` | 终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁） | 3.8 | 3.7c | 0.5 MB | 0.5 MB | ⬆ 待同步 |
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `unzip` | Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z） |  | 6.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `uv` | 官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税） | 0.12.24 | 0.12.24 | 9.3 MB | 11.9 MB | ✅ 最新 |
+| `uv` | 官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税） | 0.13.0 | 0.12.24 | 9.3 MB | 11.9 MB | ⬆ 待同步 |
 | `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.0 MB | ✅ 源码构建 |
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.1 | v4.54.1 | 4.2 MB | — | ✅ 最新 |
+| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.1 | v4.54.1 | 4.2 MB | 4.9 MB | ✅ 最新 |
 | `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 57 个工具 · arm64 合计 40.9 MB · amd64 合计 40.3 MB
+共 57 个工具 · arm64 合计 40.9 MB · amd64 合计 45.1 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
