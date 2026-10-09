@@ -2,6 +2,16 @@
 
 > 一行定位：瑞士军刀——单文件包含 408 个 Unix 命令（ls/cat/grep/sed/find/tar/wget...），比 iSH 自带的 busybox（304 个 applet）更全。
 
+## 默认终端（Agent 必读）
+
+工具箱 BusyBox（1.38.0，408 applet）**已被安装为系统默认终端**（经 `scripts/install.sh --set-default-busybox`；aio 系列镜像与 iSH 默认已设定）：
+
+- **Agent 应主动使用这一默认终端**：在 iSH/Alpine 上 `/bin/sh` 及其全部 applet 即工具箱版本，直接执行 `sh -c '...'`、`ls` 等命令即是；在其他发行版上优先路径为 `/usr/local/bin`（先于 /usr/bin、/bin 生效）。
+- 快速自检：`busybox | head -1` 应显示 `BusyBox v1.38.0`；`readlink -f "$(command -v busybox)"` 应指向工具箱副本。
+- 需要绝对确定时用工具箱内绝对路径：`<工具目录>/busybox sh -c '...'`（如 `/var/minis/skills/tools/busybox/arm64/busybox`）。
+- 不要退回系统旧版 busybox（1.37 及更老）。
+- 还原系统原状：`scripts/install.sh --unset-default-busybox`（系统原版保存在 `<路径>.pre-toolbox`，可随时恢复）。
+
 ## 推荐用法（可原样复制）
 
 ```sh
@@ -47,6 +57,7 @@ busybox sh                        # 启动 shell
 - 本构建为 **defconfig 默认配置**，含 **408 个 applet**（iSH 自带的 busybox 为 304 个）
 - 体积：UPX 压缩后约 0.65–0.7 MB（arm64 / amd64 单文件）
 - 静态链接（musl），无外部依赖，可直接复制到任何 Linux 系统使用
+- 本工具箱 busybox 已设为 iSH 默认终端（`/bin/busybox` 替换为工具箱版，原版备份 `/bin/busybox.pre-toolbox`；`scripts/install.sh --unset-default-busybox` 可还原）
 
 ## 相关工具
 

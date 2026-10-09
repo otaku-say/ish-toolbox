@@ -6,7 +6,7 @@
 
 ## 特点
 
-- **单文件零依赖**：静态链接，拷到任何目录都能跑，不依赖 glibc/musl 的 `.so`
+- **单文件零依赖**：静态链接，拷到任何目录都能跑，不依赖 glibc/musl 的 `.so`（`python3`/`uv` 为自解压壳：外壳静态，首次运行解压到 /tmp，之后零开销；Alpine/iSH 直达，glibc 系需自备 musl loader）
 - **双架构 · 一工具一目录**：每个命令在 `tools/<tool>/<arch>/<tool>`（工具目录内含 `arm64/` 与 `amd64/`）；架构清单 `tools/SHA256SUMS.arm64` / `tools/SHA256SUMS.amd64`
 - **自动跟随上游**：CI 每天从各上游的 latest Release 抓取、校验、覆盖
 - **校验严格**：入库前过三重判定，任何一项不过就不入库（见下）
@@ -87,6 +87,19 @@ sh scripts/install.sh /usr/local/bin   # 或装到系统目录
 ```
 
 装完直接敲命令名即可（`install.sh` 会提示是否需要把目录加进 `PATH`）。
+
+## 将 BusyBox 设为系统默认终端（可选）
+
+```sh
+sh scripts/install.sh --set-default-busybox          # 安装并设为默认终端
+sh scripts/install.sh --unset-default-busybox        # 还原系统原版 / 移除 applet 链接
+```
+
+- 兼容 arm64/amd64 与主流发行版，双模式自动判定：
+  - **busybox 系**（Alpine、iSH 等：存在 `/etc/alpine-release`，或 `/bin/sh` 指向 busybox）：备份系统原版为 `/bin/busybox.pre-toolbox` 后替换 `/bin/busybox`，`/bin/sh` 与全部 applet 即刻使用工具箱版本；
+  - **其他发行版**（Debian、Ubuntu、CentOS、Fedora、Arch、OpenWrt 等）：在 `/usr/local/bin` 建立全部 applet 软链（`--busybox-links-dir=DIR` 可换目录），已存在的同名文件不覆盖。
+- 系统已自带 busybox 时（`/bin`、`/usr/bin`、`/sbin`、`/usr/sbin` 任一位置），先备份为 `<路径>.pre-toolbox` 再原地替换为工具箱静态版；不调用包管理器、随时可还原。
+- 设为默认终端后，`sh`、`ls` 等命令即工具箱版本；Agent 应主动使用该默认终端（详见 `tools/busybox/USAGE.md`）。
 
 ## 体检
 

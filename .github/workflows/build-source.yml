@@ -18,6 +18,10 @@ on:
       - '!scripts/build/drill.sh'
       - '!scripts/build/python3.sh'
       - '!scripts/build/python3-sweep.sh'
+      # python3 / uv 自解压壳线由 build-python3.yml / build-uv.yml 负责，别在这里白跑
+      - '!scripts/build/dyn-common.sh'
+      - '!scripts/build/py3dyn-stub.c'
+      - '!scripts/build/uv.sh'
       - '.github/workflows/build-source.yml'
   schedule:
     - cron: '37 3 * * *'          # 每日 UTC 03:37 跟一次（上游有新提交就重建）

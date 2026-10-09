@@ -1,19 +1,21 @@
-name: Build python3（自解压壳 · 动态 musl · 完整模块集）
+name: Build uv（自解压壳单文件）
 
-# 自编译动态 musl CPython 3.12 → 自解压壳单文件（[静态壳][xz(BCJ) 载荷][72B 尾部]）。
-# 两架构构建 → 构建内硬校验 → 全量验收（含 arm64 qemu 实跑）→ 提交 tools/python3/。
-# 首次运行解压到 /tmp/.ish-py3dyn-<id>/，之后每次运行只做 stat + exec（零开销）。
+# 官方 uv（musl 静态）→ 自解压壳单文件（[静态壳][xz(BCJ) 载荷][72B 尾部]），与 python3 配对。
+# 升级 uv：Actions 手动触发并把 uv_version 填 latest（或指定版本）；默认固定 0.12.24。
+# latest 会先做稳定性过滤（排除 prerelease/draft），失败自动回退到固定版本。
 on:
   workflow_dispatch:
+    inputs:
+      uv_version:
+        description: 'uv 版本（如 0.12.24，或 latest）'
+        required: false
+        default: '0.12.24'
   push:
     paths:
-      - 'scripts/build/python3.sh'
-      - 'scripts/build/python3-sweep.sh'
+      - 'scripts/build/uv.sh'
       - 'scripts/build/dyn-common.sh'
       - 'scripts/build/py3dyn-stub.c'
-      - '.github/workflows/build-python3.yml'
-  schedule:
-    - cron: '23 4 1 * *'        # 每月 1 日（错开 sync / build-source / build-curl）
+      - '.github/workflows/build-uv.yml'
 
 permissions:
   contents: write
@@ -25,33 +27,34 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
-
-      - name: 释放 runner 磁盘空间
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
 
       - name: 系统依赖（qemu 供 arm64 运行校验 / xz / 打包工具）
         run: |
           set -eux
           sudo apt-get update -qq
-          sudo apt-get install -y -qq qemu-user-static zip unzip advancecomp patch pkg-config bzip2 build-essential
+          sudo apt-get install -y -qq qemu-user-static zip unzip bzip2 build-essential
 
       - name: 准备动态构建环境（Bootlin musl 工具链×2 / xz 5.6.4 / xz-embedded / musl loader）
         run: bash scripts/build/dyn-common.sh --setup
 
-      - name: 构建 aarch64 自解压壳单文件
-        run: ARCH=arm64 bash scripts/build/python3.sh
+      - name: 构建 aarch64（uv ${{ inputs.uv_version || '0.12.24' }}）
+        env:
+          UV_VERSION: ${{ inputs.uv_version || '0.12.24' }}
+        run: ARCH=arm64 bash scripts/build/uv.sh
 
-      - name: 构建 x86_64 自解压壳单文件
-        run: ARCH=amd64 bash scripts/build/python3.sh
+      - name: 构建 x86_64（uv ${{ inputs.uv_version || '0.12.24' }}）
+        env:
+          UV_VERSION: ${{ inputs.uv_version || '0.12.24' }}
+        run: ARCH=amd64 bash scripts/build/uv.sh
 
-      - name: 全量验收（两架构：全量导入 + 功能抽查）
+      - name: 壳级抽查（两架构实际运行）
         run: |
           set -eux
-          sh scripts/build/python3-sweep.sh tools/python3/amd64/python3
-          PY3_QEMU=qemu-aarch64-static sh scripts/build/python3-sweep.sh tools/python3/arm64/python3
+          tools/uv/amd64/uv --version
+          qemu-aarch64-static tools/uv/arm64/uv --version
 
       - name: 提交产物（重置到最新 main 后重放 baked 产物）
         env:
@@ -64,10 +67,10 @@ jobs:
             echo "第 $i 轮：重置到 origin/main 后重新落地产物"
             git fetch origin main
             git reset --hard origin/main
-            mkdir -p tools/python3/arm64 tools/python3/amd64
-            cp /tmp/python3-arm64-single tools/python3/arm64/python3
-            cp /tmp/python3-amd64-single tools/python3/amd64/python3
-            chmod +x tools/python3/arm64/python3 tools/python3/amd64/python3
+            mkdir -p tools/uv/arm64 tools/uv/amd64
+            cp /tmp/uv-arm64-single tools/uv/arm64/uv
+            cp /tmp/uv-amd64-single tools/uv/amd64/uv
+            chmod +x tools/uv/arm64/uv tools/uv/amd64/uv
             for a in arm64 amd64; do
               ( cd tools && find . -path "./*/$a/*" -type f | sed 's|^\./||' | sort | xargs -r sha256sum > "SHA256SUMS.$a" )
             done
@@ -75,7 +78,7 @@ jobs:
             bash scripts/gen-table.sh || true
             git add -A
             if git diff --cached --quiet; then echo "无变更"; exit 0; fi
-            git commit -m "build: python3 自解压壳单文件（动态 musl / 完整模块 / uv 兼容） [arm64+amd64] $(date -u +%Y-%m-%d)" >/dev/null
+            git commit -m "build: uv 自解压壳单文件（官方 musl 静态载荷） [arm64+amd64] $(date -u +%Y-%m-%d)" >/dev/null
             if git push >/dev/null 2>&1; then echo "push 成功（第 $i 次）"; exit 0; fi
             echo "push 被拒，重试…"; sleep $((i * 3))
           done
@@ -85,6 +88,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: python3-shell
-          path: /tmp/python3-*-single
+          name: uv-shell
+          path: /tmp/uv-*-single
           retention-days: 14

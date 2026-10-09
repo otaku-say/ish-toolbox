@@ -35,5 +35,6 @@ fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
-python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	全静态 CPython 单文件（LibreSSL+sqlite3+zlib；内嵌 CA 零配置 HTTPS；约 5.5MB 单二进制，启动约 0.3s）
+python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	动态 musl CPython 自解压壳单文件（LibreSSL 内嵌 CA / sqlite3 / ctypes / lzma / bz2 / uuid / multiprocessing / 内嵌 tzdata；与 uv 兼容；约 5.3MB 起）
+uv	astral-sh/uv	0.12.24	官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税）
 busybox	busybox/busybox	1.38.0	瑞士军刀（自编译，上游只发源码，全静态单文件）
