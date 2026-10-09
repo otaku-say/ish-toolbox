@@ -20,7 +20,7 @@ Z=/path/to/tools/zip/arm64/zip    # iSH/arm64；amd64 换 amd64 目录
 "$Z" -d out.zip obsolete.txt
 
 # 查看/校验途径：
-#   - 工具箱另有 unzip?（没有）；iSH 可用 busybox unzip -l 查看
+#   - 工具箱已提供 unzip（tools/unzip）：完整校验用 "$U" -t out.zip
 #   - 或 python3：python3 -m zipfile -l out.zip
 ```
 
