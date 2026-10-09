@@ -1,15 +1,25 @@
 name: Build uv（自解压壳单文件）
 
 # 官方 uv（musl 静态）→ 自解压壳单文件（[静态壳][xz(BCJ) 载荷][72B 尾部]），与 python3 配对。
-# 升级 uv：Actions 手动触发并把 uv_version 填 latest（或指定版本）；默认固定 0.12.24。
-# latest 会先做稳定性过滤（排除 prerelease/draft），失败自动回退到固定版本。
+#
+# 版本策略（自动跟随上游）：
+#   - 每日定时（cron）解析 astral-sh/uv 最新**稳定** release（显式排除 prerelease/draft）；
+#     与库内现版一致 → 跳过整套构建（轻量快速退出）；有新版 → 全量构建并提交产物。
+#   - 手动触发可指定 uv_version（默认 latest）；force=true 强制重建（版本未变也构建）。
+#   - 解析失败自动回退固定版本（FALLBACK_VERSION）。
 on:
+  schedule:
+    - cron: "40 19 * * *" # 每日 19:40 UTC（北京时间 03:40）
   workflow_dispatch:
     inputs:
       uv_version:
         description: 'uv 版本（如 0.12.24，或 latest）'
         required: false
-        default: '0.12.24'
+        default: 'latest'
+      force:
+        description: '强制重建（即使版本未变）'
+        type: boolean
+        default: false
   push:
     paths:
       - 'scripts/build/uv.sh'
@@ -25,7 +35,47 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      skip: ${{ steps.resolve.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 解析目标版本并决定是否跳过
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          FALLBACK=0.12.24
+          WANT="${{ github.event_name == 'workflow_dispatch' && inputs.uv_version || 'latest' }}"
+          if [ -z "${WANT}" ]; then WANT=latest; fi
+          if [ "${WANT}" = "latest" ]; then
+            V=$(curl -fsSL --retry 3 --max-time 30 "https://api.github.com/repos/astral-sh/uv/releases?per_page=30" \
+                 | jq -r '[.[] | select(.prerelease == false and .draft == false) | .tag_name | sub("^v";"")] | first // empty')
+            if [ -z "${V}" ]; then echo "⚠ latest 解析失败，回退 ${FALLBACK}"; V="${FALLBACK}"; fi
+          else
+            V="${WANT#v}"
+          fi
+          CUR=""
+          chmod +x tools/uv/amd64/uv 2>/dev/null || true
+          if [ -x tools/uv/amd64/uv ]; then CUR="$(tools/uv/amd64/uv --version 2>/dev/null | awk '{print $2}' || true)"; fi
+          echo "目标版本=${V}  库内版本=${CUR:-未知}  事件=${{ github.event_name }}"
+          SKIP=false
+          if [ "${V}" = "${CUR}" ] && [ "${{ github.event_name }}" != "push" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force }}" = "true" ]; then
+              echo "版本未变，但显式 force=true → 不跳过"
+            else
+              SKIP=true
+              echo "版本未变 → 跳过构建"
+            fi
+          fi
+          echo "version=${V}" >> "$GITHUB_OUTPUT"
+          echo "skip=${SKIP}" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: resolve
+    if: needs.resolve.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -40,14 +90,14 @@ jobs:
       - name: 准备动态构建环境（Bootlin musl 工具链×2 / xz 5.6.4 / xz-embedded / musl loader）
         run: bash scripts/build/dyn-common.sh --setup
 
-      - name: 构建 aarch64（uv ${{ inputs.uv_version || '0.12.24' }}）
+      - name: 构建 aarch64（uv ${{ needs.resolve.outputs.version }}）
         env:
-          UV_VERSION: ${{ inputs.uv_version || '0.12.24' }}
+          UV_VERSION: ${{ needs.resolve.outputs.version }}
         run: ARCH=arm64 bash scripts/build/uv.sh
 
-      - name: 构建 x86_64（uv ${{ inputs.uv_version || '0.12.24' }}）
+      - name: 构建 x86_64（uv ${{ needs.resolve.outputs.version }}）
         env:
-          UV_VERSION: ${{ inputs.uv_version || '0.12.24' }}
+          UV_VERSION: ${{ needs.resolve.outputs.version }}
         run: ARCH=amd64 bash scripts/build/uv.sh
 
       - name: 壳级抽查（两架构实际运行）
