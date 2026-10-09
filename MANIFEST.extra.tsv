@@ -47,3 +47,4 @@ diff	gnu/diffutils	3.12	GNU diff（自编译静态）
 tar	gnu/tar	1.35	GNU tar（自编译静态）
 xz	tukaani-project/xz	5.8.4	Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态）
 zip	info-zip/infozip	3.0	Info-ZIP zip（自编译静态）
+unzip	info-zip/infozip	6.0	Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z）

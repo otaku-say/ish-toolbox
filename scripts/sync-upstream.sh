@@ -27,6 +27,7 @@ su-exec|ncopa/su-exec|以指定用户身份执行命令（容器/脚本里的权
 qjs|quickjs-ng/quickjs|QuickJS JavaScript 引擎（qjs 命令行）|^qjs-linux-
 rage|str4d/rage|现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen|str4d/rage|rage 密钥生成（age-format identity/keypair）
+yq|mikefarah/yq|YAML/JSON 处理（yq-go；自动跟随上游最新版）
 '
 
 arch_of() { case "$(uname -m)" in aarch64|arm64) echo arm64 ;; x86_64|amd64) echo amd64 ;; *) echo unknown ;; esac; }
@@ -146,7 +147,7 @@ fi
 # 触发场景：某工具被替换（如 xh → curl）后，旧文件会一直留在仓库里；
 # UPX 被中断时也会留下 <file>.upx 残缺文件。
 # 自编译的工具不在本清单里，必须显式保留，否则会被误删。
-SELF_BUILT="patch tree sqlite3 curl zstd openssl sponge ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat jaq faketty tini chronic drill strip-ansi head-tail jo html2text envsubst diffstat lowdown xxhsum pstree fzy entr csvquote pv hxselect tmux bash gawk python3 busybox uv coreutils grep sed find xargs diff tar xz zip"
+SELF_BUILT="patch tree sqlite3 curl zstd openssl sponge ssh scp sftp ssh-keygen ssh-keyscan ssh-agent ssh-add socat jaq faketty tini chronic drill strip-ansi head-tail jo html2text envsubst diffstat lowdown xxhsum pstree fzy entr csvquote pv hxselect tmux bash gawk python3 busybox uv coreutils grep sed find xargs diff tar xz zip unzip"
 printf '%s\n' "$LIST" | cut -d'|' -f1 > "$W/known"
 for k in $SELF_BUILT; do echo "$k" >> "$W/known"; done
 # 布局：tools/<tool>/<arch>/<tool>（每工具一枚目录，内含 arm64/amd64 子目录）。
