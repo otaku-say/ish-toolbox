@@ -6,7 +6,12 @@
 #   ② --disable-nls；strip/UPX 统一由 install_verified 处理
 . "$(dirname "$0")/_common.sh"
 
-TV=1.35
+# 版本：默认自动跟随上游最新稳定版；可用 TAR_VERSION 显式指定；解析失败回退已知良好版
+TV="${TAR_VERSION:-}"
+[ -z "$TV" ] && { TV=$(latest_gnu tar 'tar-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz'); TV=${TV#tar-}; TV=${TV%.tar.xz}; }
+echo "$TV" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$' || TV=1.35
+echo "  · tar 目标版本：$TV"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ tar: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
 fi

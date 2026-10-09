@@ -6,7 +6,12 @@
 #   ② --disable-nls；strip/UPX 统一由 install_verified 处理
 . "$(dirname "$0")/_common.sh"
 
-FV=4.11.0
+# 版本：默认自动跟随上游最新稳定版；可用 FINDUTILS_VERSION 显式指定；解析失败回退已知良好版
+FV="${FINDUTILS_VERSION:-}"
+[ -z "$FV" ] && { FV=$(latest_gnu findutils 'findutils-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz'); FV=${FV#findutils-}; FV=${FV%.tar.xz}; }
+echo "$FV" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$' || FV=4.11.0
+echo "  · findutils 目标版本：$FV"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ findutils: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
 fi

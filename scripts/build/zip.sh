@@ -11,7 +11,17 @@
 #   ④ 源码链三级回退：SourceForge → BLFS(osuosl) → Debian pool
 . "$(dirname "$0")/_common.sh"
 
-ZV=30
+# 版本：默认自动跟随上游（Info-ZIP 3.x 稳定线；SourceForge RSS 探测，上游长期静止属正常）；
+#       可用 ZIP_VERSION 显式指定；解析失败回退已知良好版 30（=3.0）
+ZV="${ZIP_VERSION:-}"
+if [ -z "$ZV" ]; then
+  ZV=$(curl -fsSL --max-time 60 "https://sourceforge.net/projects/infozip/rss?path=/" 2>/dev/null \
+        | grep -oE 'zip3[0-9]+\.tar\.gz' | sort -uV | tail -1)
+  ZV=${ZV#zip}; ZV=${ZV%.tar.gz}
+fi
+echo "$ZV" | grep -qE '^3[0-9]$' || ZV=30
+echo "  · zip 目标版本：3.${ZV#3}"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ zip: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
 fi

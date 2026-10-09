@@ -18,6 +18,9 @@
 #   ⑦ SOURCE_DATE_EPOCH 固定 → AUTOCONF_TIMESTAMP 确定性（busybox kconfig
 #      原生支持；保证上游无变化时每日重建产物一致，不产生无谓提交）
 #   ⑧ 版本号动态取自官方 downloads 列表（每日 schedule 自动跟新版）
+#   ⑨ 内核 ≥6.8 的 UAPI 头删除了 CBQ 段（v6.6 尚在、v6.8 已无），而 tc.c 仍
+#      引用 TCA_CBQ_* / tc_cbq_* → 头文件缺 TCA_CBQ_MAX 时注入兼容块
+#      （scripts/build/busybox-cbq-compat.h，带 ifndef 守卫；2026-10 实证补丁）
 . "$(dirname "$0")/_common.sh"
 
 # ── 动态查最新版本（失败/异常回退默认）─────────────────────────
@@ -47,6 +50,11 @@ else
     mkdir -p "$KH"
     for d in linux asm-generic mtd sound rdma drm xen; do cp -r "/usr/include/$d" "$KH/" 2>/dev/null; done
     cp -r /usr/include/x86_64-linux-gnu/asm "$KH/asm" 2>/dev/null
+  fi
+  # ⑨ CBQ 兼容：新内核头（≥6.8）删除了 CBQ 段，tc.c 编译会报 TCA_CBQ_MAX undeclared
+  if [ -f "$KH/linux/pkt_sched.h" ] && ! grep -q "TCA_CBQ_MAX" "$KH/linux/pkt_sched.h"; then
+    cat "$(dirname "$0")/busybox-cbq-compat.h" >> "$KH/linux/pkt_sched.h"
+    echo "  · 已注入 CBQ UAPI 兼容块（新内核头移除了 CBQ）"
   fi
   printf '#!/bin/sh\nexec %s -idirafter %s "$@"\n' "$CROSS_CC" "$KH" > /tmp/bb-cc
   chmod +x /tmp/bb-cc

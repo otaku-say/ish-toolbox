@@ -10,7 +10,15 @@
 #   ④ argv[0] 分发：以 xz/unxz/xzcat/lzma/unlzma/lzcat 之名调用时行为对应切换（软链即得）
 . "$(dirname "$0")/_common.sh"
 
-XV=5.8.4
+# 版本：默认自动跟随上游最新稳定版（GitHub releases/latest）；可用 XZ_VERSION 显式指定；解析失败回退
+XV="${XZ_VERSION:-}"
+if [ -z "$XV" ]; then
+  XV=$(curl -fsSL --max-time 60 https://api.github.com/repos/tukaani-project/xz/releases/latest 2>/dev/null \
+        | grep -oE '"tag_name": *"v[0-9.]+"' | head -1 | cut -d'"' -f4); XV=${XV#v}
+fi
+echo "$XV" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' || XV=5.8.4
+echo "  · xz 目标版本：$XV"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ xz: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
 fi

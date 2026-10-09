@@ -8,7 +8,11 @@
 #   ② --disable-nls；strip/UPX 统一由 install_verified 处理
 . "$(dirname "$0")/_common.sh"
 
-GRV=3.12
+# 版本：默认自动跟随上游最新稳定版；可用 GREP_VERSION 显式指定；解析失败回退已知良好版
+GRV="${GREP_VERSION:-}"
+[ -z "$GRV" ] && { GRV=$(latest_gnu grep 'grep-[0-9]+\.[0-9]+\.tar\.xz'); GRV=${GRV#grep-}; GRV=${GRV%.tar.xz}; }
+echo "$GRV" | grep -qE '^[0-9]+\.[0-9]+$' || GRV=3.12
+echo "  · grep 目标版本：$GRV"
 PCRE2V=10.49
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ grep: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }

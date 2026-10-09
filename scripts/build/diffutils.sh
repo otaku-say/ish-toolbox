@@ -12,7 +12,12 @@
 set -u
 . "$(dirname "$0")/_common.sh"
 
-DV=3.12
+# 版本：默认自动跟随上游最新稳定版；可用 DIFFUTILS_VERSION 显式指定；解析失败回退已知良好版
+DV="${DIFFUTILS_VERSION:-}"
+[ -z "$DV" ] && { DV=$(latest_gnu diffutils 'diffutils-[0-9]+\.[0-9]+(\.[0-9]+)?\.tar\.xz'); DV=${DV#diffutils-}; DV=${DV%.tar.xz}; }
+echo "$DV" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?$' || DV=3.12
+echo "  · diffutils 目标版本：$DV"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ diffutils: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 1; }
 fi

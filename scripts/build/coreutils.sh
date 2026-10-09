@@ -15,7 +15,12 @@
 #      ——曾因此把 amd64 的 UPX 误判为"跑不起来"而回退（实为文件名问题）
 . "$(dirname "$0")/_common.sh"
 
-CVER=9.12
+# 版本：默认自动跟随上游最新稳定版；可用 COREUTILS_VERSION 显式指定；解析失败回退已知良好版
+CVER="${COREUTILS_VERSION:-}"
+[ -z "$CVER" ] && { CVER=$(latest_gnu coreutils 'coreutils-[0-9]+\.[0-9]+\.tar\.xz'); CVER=${CVER#coreutils-}; CVER=${CVER%.tar.xz}; }
+echo "$CVER" | grep -qE '^[0-9]+\.[0-9]+$' || CVER=9.12
+echo "  · coreutils 目标版本：$CVER"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ coreutils: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 0; }
 fi

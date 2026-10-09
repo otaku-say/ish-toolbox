@@ -11,7 +11,12 @@
 set -u
 . "$(dirname "$0")/_common.sh"
 
-SV=4.10
+# 版本：默认自动跟随上游最新稳定版；可用 SED_VERSION 显式指定；解析失败回退已知良好版
+SV="${SED_VERSION:-}"
+[ -z "$SV" ] && { SV=$(latest_gnu sed 'sed-[0-9]+\.[0-9]+\.tar\.xz'); SV=${SV#sed-}; SV=${SV%.tar.xz}; }
+echo "$SV" | grep -qE '^[0-9]+\.[0-9]+$' || SV=4.10
+echo "  · sed 目标版本：$SV"
+
 if [ "$ARCH" = arm64 ]; then
   gnu_arm64_cc || { echo "  ✗ sed: 缺 aarch64-linux-gcc（GNU musl 交叉链未安装）"; exit 1; }
 fi
