@@ -28,13 +28,21 @@ esac
 
 # ── 逐工具构建（每个都是独立进程，失败不影响其它）──────────────
 # 现役：patch（上游不给 arm64 musl 产物）、tree/sqlite3/zstd（上游只发源码）、sponge（moreutils 小件）、jaq / faketty（Rust 自编译）
-TOOLS="patch tree sqlite3 zstd sponge jaq faketty tini chronic strip-ansi head-tail jo html2text envsubst diffstat xxhsum lowdown hxselect entr csvquote pv pstree fzy tmux bash gawk busybox"
+TOOLS="patch tree sqlite3 zstd sponge jaq faketty tini chronic strip-ansi head-tail jo html2text envsubst diffstat xxhsum lowdown hxselect entr csvquote pv pstree fzy tmux bash gawk busybox coreutils grep sed findutils diffutils tar xz zip"
 ok=0; failed=""
 for t in $TOOLS; do
   echo "───────── $t ─────────"
   if bash "$HERE/build/$t.sh"; then
-    # 判定该工具是否真的产出了文件（脚本本身总是 exit 0）
-    if [ -f "tools/$t/$ARCH/$t" ]; then ok=$((ok+1)); else failed="$failed $t"; fi
+    # 判定该工具是否真的产出了文件（脚本本身总是 exit 0）；
+    # 多产物脚本用映射表（findutils→find+xargs，diffutils→diff）
+    case "$t" in
+      findutils) outs="find/$ARCH/find xargs/$ARCH/xargs" ;;
+      diffutils) outs="diff/$ARCH/diff" ;;
+      *)         outs="$t/$ARCH/$t" ;;
+    esac
+    miss=""
+    for o in $outs; do [ -f "tools/$o" ] || miss=1; done
+    if [ -z "$miss" ]; then ok=$((ok+1)); else failed="$failed $t"; fi
   else
     failed="$failed $t"
   fi
