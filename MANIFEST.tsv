@@ -2,15 +2,19 @@ tool	repo	version	description
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 busybox	busybox/busybox	1.38.0	瑞士军刀（自编译，上游只发源码，全静态单文件）
 chronic	otaku-say/ish-toolbox	1.3	命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固）
+coreutils	gnu/coreutils	9.12	GNU 核心工具集官方多路复用单文件（100+ 命令；argv[0]/--coreutils-prog 分发；自编译静态）
 csvquote	dbro/csvquote	0.1.5	CSV 逗号/换行保护（配合 awk/cut 双通管道）
 curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
+diff	gnu/diffutils	3.12	GNU diff（自编译静态）
 diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编译）
 entr	eradman/entr	5.9	文件变化时执行命令（视 inode）
 envsubst	gnu/gettext-runtime	1.0	环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
 fd	sharkdp/fd	v10.5.0	按模式找文件
+find	gnu/findutils	4.11.0	GNU find（-printf/-regex 等完整特性；自编译静态）
 fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
+grep	gnu/grep	3.12	GNU grep（PCRE2 -P 静态链入；自编译静态）
 head-tail	otaku-say/ish-toolbox	1.0	长日志折叠：头 30 + 尾 30 行（60 行内原样；省 Context Token）
 html2text	grobian/html2text	2.3.0	HTML → 纯文本（C++；zig 工具链自编译）
 hxselect	w3.org html-xml-utils	8.8	按 CSS 选择器提取 HTML/XML 元素（替代 cascadia）
@@ -28,6 +32,7 @@ rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair�
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
 scp	openssh/openssh-portable	10.5p1	SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议）
 sd	chmln/sd	v1.1.0	正则替换
+sed	gnu/sed	4.10	GNU sed（自编译静态）
 sftp	openssh/openssh-portable	10.5p1	交互式 SFTP 文件传输（自编译）
 socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
@@ -39,9 +44,13 @@ ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译�
 ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
 strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机）
 su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
+tar	gnu/tar	1.35	GNU tar（自编译静态）
 tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
 uv	astral-sh/uv	0.12.24	官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税）
+xargs	gnu/findutils	4.11.0	GNU xargs（-P/-I/--delimiter 完整版；自编译静态）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
+xz	tukaani-project/xz	5.8.4	Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态）
+zip	info-zip/infozip	3.0	Info-ZIP zip（自编译静态）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
