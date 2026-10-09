@@ -48,9 +48,11 @@ tar	gnu/tar	1.35	GNU tar（自编译静态）
 tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
+unzip	info-zip/infozip	6.0	Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z）
 uv	astral-sh/uv	0.12.24	官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税）
 xargs	gnu/findutils	4.11.0	GNU xargs（-P/-I/--delimiter 完整版；自编译静态）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
 xz	tukaani-project/xz	5.8.4	Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态）
+yq	mikefarah/yq	v4.54.1	YAML/JSON 处理（yq-go；自动跟随上游最新版）
 zip	info-zip/infozip	3.0	Info-ZIP zip（自编译静态）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）

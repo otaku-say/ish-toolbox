@@ -21,19 +21,19 @@
 | `bash` | Bash 5.3 全静态（readline 内建） |  | 5.3 | 0.6 MB | 0.6 MB | ✅ 源码构建 |
 | `busybox` | 瑞士军刀（自编译，上游只发源码，全静态单文件） |  | 1.38.0 | 0.7 MB | 0.6 MB | ✅ 源码构建 |
 | `chronic` | 命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固） |  | 1.3 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
-| `coreutils` | GNU 核心工具集官方多路复用单文件（100+ 命令；argv[0]/--coreutils-prog 分发；自编译静态） |  | 9.12 | — | — | ✅ 源码构建 |
+| `coreutils` | GNU 核心工具集官方多路复用单文件（100+ 命令；argv[0]/--coreutils-prog 分发；自编译静态） |  | 9.12 | 0.7 MB | 0.7 MB | ✅ 源码构建 |
 | `csvquote` | CSV 逗号/换行保护（配合 awk/cut 双通管道） | v0.1.5 | 0.1.5 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `curl` | 静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译） |  | 8.22.0 | 1.5 MB | 1.5 MB | ✅ 源码构建 |
-| `diff` | GNU diff（自编译静态） |  | 3.12 | — | — | ✅ 源码构建 |
+| `diff` | GNU diff（自编译静态） |  | 3.12 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `diffstat` | diff 统计（Dickey 原版，自编译） |  | 1.69 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `entr` | 文件变化时执行命令（视 inode） |  | 5.9 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
 | `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.2 MB | 0.2 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
 | `fd` | 按模式找文件 | v10.5.0 | v10.5.0 | 1.1 MB | 1.2 MB | ✅ 最新 |
-| `find` | GNU find（-printf/-regex 等完整特性；自编译静态） |  | 4.11.0 | — | — | ✅ 源码构建 |
+| `find` | GNU find（-printf/-regex 等完整特性；自编译静态） |  | 4.11.0 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `fzy` | 模糊查找器（-e 非交互模式对 Agent 友好） | v1.1 | 1.1 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `gawk` | GNU Awk 5.4.1 全静态（含 --csv 模式） |  | 5.4.1 | 0.3 MB | 0.3 MB | ✅ 源码构建 |
-| `grep` | GNU grep（PCRE2 -P 静态链入；自编译静态） |  | 3.12 | — | — | ✅ 源码构建 |
+| `grep` | GNU grep（PCRE2 -P 静态链入；自编译静态） |  | 3.12 | 0.2 MB | 0.2 MB | ✅ 源码构建 |
 | `head-tail` | 长日志折叠：头 30 + 尾 30 行（60 行内原样；省 Context Token） |  | 1.0 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `html2text` | HTML → 纯文本（C++；zig 工具链自编译） | v2.3.0 | 2.3.0 | 0.4 MB | 0.7 MB | ✅ 最新 |
 | `hxselect` | 按 CSS 选择器提取 HTML/XML 元素（替代 cascadia） |  | 8.8 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
@@ -51,11 +51,11 @@
 | `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | 1.8 MB | ✅ 最新 |
 | `scp` | SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议） |  | 10.5p1 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `sd` | 正则替换 | v1.1.0 | v1.1.0 | 0.7 MB | 0.8 MB | ✅ 最新 |
-| `sed` | GNU sed（自编译静态） |  | 4.10 | — | — | ✅ 源码构建 |
+| `sed` | GNU sed（自编译静态） |  | 4.10 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `sftp` | 交互式 SFTP 文件传输（自编译） |  | 10.5p1 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `socat` | 双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端） |  | 1.8.1.3 | 0.9 MB | 0.9 MB | ✅ 源码构建 |
 | `sponge` | 管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态） |  | 0.70 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
-| `sqlite3` | SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译） |  | default | 0.5 MB | 0.5 MB | ✅ 源码构建 |
+| `sqlite3` | SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译） |  | default | 0.6 MB | 0.5 MB | ✅ 源码构建 |
 | `ssh` | SSH 客户端（全静态；LibreSSL 后端，自编译） |  | 10.5p1 | 0.9 MB | 0.9 MB | ✅ 源码构建 |
 | `ssh-add` | 向 ssh-agent 添加密钥（自编译） |  | 10.5p1 | 0.7 MB | 0.7 MB | ✅ 源码构建 |
 | `ssh-agent` | SSH 密钥代理（免重复输入口令，自编译） |  | 10.5p1 | 0.7 MB | 0.7 MB | ✅ 源码构建 |
@@ -63,18 +63,20 @@
 | `ssh-keyscan` | 批量采集 SSH 主机公钥（自编译） |  | 10.5p1 | 0.8 MB | 0.8 MB | ✅ 源码构建 |
 | `strip-ansi` | 过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机） |  | 1.0 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `su-exec` | 以指定用户身份执行命令（容器/脚本里的权限降级） | v0.3 | v0.3 | 0.0 MB | 0.0 MB | ✅ 最新 |
-| `tar` | GNU tar（自编译静态） |  | 1.35 | — | — | ✅ 源码构建 |
+| `tar` | GNU tar（自编译静态） |  | 1.35 | 0.4 MB | 0.3 MB | ✅ 源码构建 |
 | `tini` | 迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁） | v0.19.0 | v0.19.0 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `tmux` | 终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁） | 3.8 | 3.7c | 0.5 MB | 0.5 MB | ⬆ 待同步 |
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
+| `unzip` | Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z） |  | 6.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `uv` | 官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税） | 0.12.24 | 0.12.24 | 9.3 MB | 11.9 MB | ✅ 最新 |
-| `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | — | — | ✅ 源码构建 |
+| `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.0 MB | ✅ 源码构建 |
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
-| `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | — | — | ✅ 最新 |
-| `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | — | — | ✅ 源码构建 |
+| `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
+| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.1 | v4.54.1 | — | 4.9 MB | ✅ 最新 |
+| `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 55 个工具 · arm64 合计 34.7 MB · amd64 合计 38.3 MB
+共 57 个工具 · arm64 合计 36.7 MB · amd64 合计 45.1 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
