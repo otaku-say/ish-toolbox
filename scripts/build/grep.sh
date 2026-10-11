@@ -52,6 +52,7 @@ fetch_gnu "grep/grep-$GRV.tar.xz" "grep-$GRV" grepsrc \
   || { echo "  ✗ grep: 下载失败（_common 镜像链均不可达）"; exit 0; }
 
 ( cd /tmp/build/grepsrc \
+  && ish_patch_no_c_stack src/grep.c \
   && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
      PCRE_CFLAGS="-I$PD/include" PCRE_LIBS="-L$PD/lib -lpcre2-8" \
      PKG_CONFIG_PATH="$PD/lib/pkgconfig" \

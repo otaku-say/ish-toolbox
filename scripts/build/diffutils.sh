@@ -27,6 +27,7 @@ fetch_gnu "diffutils/diffutils-$DV.tar.xz" "diffutils-$DV" dfsrc \
   || { echo "  ✗ diffutils: 下载失败（_common 镜像链均不可达）"; exit 1; }
 
 ( cd /tmp/build/dfsrc \
+  && ish_patch_no_c_stack src/diff.c \
   && CC="$CROSS_CC" CFLAGS="$CSIZE" LDFLAGS="$CLINK" \
      ./configure --host="$T" --disable-nls \
        gl_cv_func_strcasecmp_works="guessing yes" >/tmp/c-df 2>&1 \

@@ -43,3 +43,13 @@ D=/path/to/tools/diff/arm64/diff    # iSH/arm64；amd64 换 amd64 目录
 
 - `patch` —— 应用 diff 生成的补丁（工具箱已含）
 - `grep` / `sed` —— 文本处理配套
+
+## iSH 环境已知问题与修复（2026-10）
+
+在 iSH 模拟器（aarch64）上，GNU 工具启动时调用的 `c_stack_action()` 会经由
+gnulib 的 stackvma 触发 `mincore()` 系统调用探测栈范围，**而 iSH 的 mincore
+模拟会挂死**（进程 state=R、永不退出；实测挂起率 grep 25%、diff 80%，
+`--version` 即触发）。
+
+本工具的构建脚本已自动打补丁禁用该调用（`ish_patch_no_c_stack`），
+修复后实测 0/40 挂起。代价：栈溢出时不再有友好提示，退化为 SIGSEGV。

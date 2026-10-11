@@ -69,6 +69,36 @@ gnu_arm64_cc() {
   return 0
 }
 
+# ── iSH 兼容补丁：禁用 gnulib c-stack 的 mincore 探测 ──────────────
+# 根因（2026-10 实测，iSH aarch64 模拟器）：GNU 工具启动时调用 c_stack_action()，
+# gnulib 的 stackvma 在 musl 下用 mincore() 探测栈范围，而 **iSH 模拟器的
+# mincore 系统调用会挂死**——进程 state=R、svc 指令永不返回、CPU 空转、永不退出。
+# 实测挂起率：grep 25%、diff 80%，连 `grep --version`（不读任何文件）都触发；
+# 禁用该调用后实测 0/40（grep）与 0/40（diff），功能回归全过（-c / -P / diff 输出）。
+# 代价：失去"栈溢出"的友好提示，退化为 SIGSEGV（与未启用该模块时一致）。
+# 判据：内联汇编定位到挂起 PC 恒在 musl `mincore` 的 `svc` 之后，
+#       返回地址在 stackvma-mincore.c 的 mapped_range_end。
+ish_patch_no_c_stack() {  # <源码文件相对路径，如 src/grep.c>
+  local f="$1"
+  [ -f "$f" ] || { echo "  ! iSH补丁: 文件不存在 $f"; return 1; }
+  if grep -q 'iSH: mincore() hang' "$f"; then
+    echo "  · iSH补丁: 已应用（跳过）"
+    return 0
+  fi
+  if grep -q 'c_stack_action (nullptr);' "$f"; then
+    sed -i 's|^\([[:space:]]*\)c_stack_action (nullptr);|\1/* c_stack_action (nullptr); -- iSH: mincore() hang */|' "$f"
+    grep -q 'iSH: mincore() hang' "$f" || { echo "  ! iSH补丁: sed 未生效 $f"; return 1; }
+    echo "  · iSH补丁: 已禁用 c_stack_action()（规避 iSH mincore 挂死）"
+    return 0
+  fi
+  if grep -q 'c_stack_action' "$f"; then
+    echo "  ! iSH补丁: 发现 c_stack_action 但格式不匹配，需人工复核 $f"
+    return 1
+  fi
+  echo "  · iSH补丁: 未发现 c_stack_action（无需补丁）"
+  return 0
+}
+
 # ── 三判据验证后落地（含可选的 UPX 压缩）────────────────────────
 # UPX 默认开启（UPX=0 可关闭）。实测 UPX 的自解压 stub **不引入 PT_INTERP**，
 # 压缩后三判据（无 INTERP / 无 NEEDED / 架构正确）依然成立，
