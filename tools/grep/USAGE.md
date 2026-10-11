@@ -48,3 +48,13 @@ G=/path/to/tools/grep/arm64/grep     # iSH/arm64；amd64 换 amd64 目录
 - `rg` —— 更快的搜索（Rust；默认 gitignore 感知）
 - `sed` / `find` / `xargs` —— 文本与文件三板斧的 GNU 版
 - `jaq` —— 结构化数据加工
+
+## iSH 环境已知问题与修复（2026-10）
+
+在 iSH 模拟器（aarch64）上，GNU 工具启动时调用的 `c_stack_action()` 会经由
+gnulib 的 stackvma 触发 `mincore()` 系统调用探测栈范围，**而 iSH 的 mincore
+模拟会挂死**（进程 state=R、永不退出；实测挂起率 grep 25%、diff 80%，
+`--version` 即触发）。
+
+本工具的构建脚本已自动打补丁禁用该调用（`ish_patch_no_c_stack`），
+修复后实测 0/40 挂起。代价：栈溢出时不再有友好提示，退化为 SIGSEGV。
