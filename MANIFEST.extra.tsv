@@ -1,19 +1,8 @@
 tool	repo	version	description
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
-sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
-curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
-openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
-ssh	openssh/openssh-portable	10.5p1	SSH 客户端（全静态；LibreSSL 后端，自编译）
-scp	openssh/openssh-portable	10.5p1	SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议）
-sftp	openssh/openssh-portable	10.5p1	交互式 SFTP 文件传输（自编译）
-ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
-ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
-ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口令，自编译）
-ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译）
-socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
 tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
@@ -35,9 +24,6 @@ fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
-python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	动态 musl CPython 自解压壳单文件（LibreSSL 内嵌 CA / sqlite3 / ctypes / lzma / bz2 / uuid / multiprocessing / 内嵌 tzdata；与 uv 兼容；约 5.3MB 起）
-uv	astral-sh/uv	0.12.24	官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税）
-busybox	busybox/busybox	1.38.0	瑞士军刀（自编译，上游只发源码，全静态单文件）
 coreutils	gnu/coreutils	9.12	GNU 核心工具集官方多路复用单文件（100+ 命令；argv[0]/--coreutils-prog 分发；自编译静态）
 grep	gnu/grep	3.12	GNU grep（PCRE2 -P 静态链入；自编译静态）
 sed	gnu/sed	4.10	GNU sed（自编译静态）

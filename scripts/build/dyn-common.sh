@@ -1,12 +1,12 @@
 #!/bin/bash
 # =============================================================================
-# dyn-common.sh —— 「自解压壳单文件」公共构件（python3 / uv 共用）
+# dyn-common.sh —— 「自解压壳单文件」公共构件（历史遗留：python3/uv 均已下架，文件保留供参考）
 #
 # 单文件布局: [静态壳 ELF][xz(BCJ) 压缩载荷][72B 尾部记录]
 #   尾部: magic(16) + id(16) + name(16) + u64 pay_off + u64 pay_size + u64 out_size
 #   首次运行解压到 /tmp/.ish-py3dyn-<id>/，之后每次运行只做 stat + exec（零开销）。
 #
-# 被 scripts/build/python3.sh、scripts/build/uv.sh source 后使用：
+# 曾被 scripts/build/python3.sh、scripts/build/uv.sh source（两者已删除）：
 #   dyn_setup            准备：Bootlin musl 工具链×2、xz 5.6.4、xz-embedded、musl loader
 #   dyn_build_stub <out> 编译静态壳（xz-embedded 解码器）
 #   dyn_package <壳> <载荷> <输出> <名字>   组装单文件（xz BCJ 压缩 + 尾部记录）

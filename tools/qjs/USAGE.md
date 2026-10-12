@@ -61,6 +61,6 @@ qjs -d -e 'var a=[1,2,3]'
 
 ## 相关工具
 
-- `python3` —— 完整 Python 解释器（本套件自带，全静态）
+- `python3` —— 系统 Python（AOJIT 加速，apk add python3 py3-pip；工具箱已下架自带版）
 - `jaq` —— 命令行 JSON 处理
-- `sqlite3` —— 数据落库
+- `sqlite3` —— 系统 sqlite CLI（apk add sqlite；工具箱已下架自带版）
