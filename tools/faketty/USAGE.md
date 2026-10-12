@@ -50,6 +50,6 @@ faketty --version                                                     # faketty 
 
 ## 相关工具
 
-- `socat` —— PTY 配方（`socat - EXEC:'cmd',pty,raw,echo=0`），需要更细的双向控制时用
+- `socat`（apk add socat；工具箱已下架自带版）—— PTY 配方，需要更细的双向控制时用
 - `chronic` —— 只想要"成功静默、失败回放"的包装，用它（不做 TTY 伪装）
 - `tini` —— 需要信号转发 / 收尸时用它

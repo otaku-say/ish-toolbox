@@ -22,7 +22,7 @@ permissions:
   contents: write
 
 concurrency:
-  # 与 build-source / build-curl 共用同一组：所有会提交的流水线串行
+  # 与 build-source 共用同一组：所有会提交的流水线串行（build-curl 已删除）
   group: repo-writer
   cancel-in-progress: false
 

@@ -22,7 +22,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: repo-writer            # 与 sync / build-source / build-curl 串行，避免提交撞车
+  group: repo-writer            # 与 sync / build-source 串行，避免提交撞车（build-curl 已随 LibreSSL 套件下架而删除）
   cancel-in-progress: false
 
 jobs:

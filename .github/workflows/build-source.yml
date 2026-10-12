@@ -1,7 +1,8 @@
 name: 从源码构建静态二进制
 
 # 上游不给 arm64 产物的工具，在这里编译 —— 免费、可复现、产物直接进仓库。
-# 覆盖：patch / tree / sqlite3（每个都 × arm64 + amd64）
+# 覆盖：patch / tree（每个都 × arm64 + amd64）
+# 说明（2026-10 AOJIT 迁移）：sqlite3/curl/openssl/ssh/socat/drill/python3/busybox 已下架，改由 AOJIT 加速的系统版 + apk 提供
 
 on:
   workflow_dispatch:              # 手动触发
@@ -11,17 +12,6 @@ on:
       # 结果改 scripts/build/*.sh（每工具独立脚本）时 CI 根本不触发
       - 'scripts/build-from-source-ci.sh'
       - 'scripts/build/**'
-      # LibreSSL 套件（curl/openssl/ssh/socat）由 build-curl.yml 负责，别在这里白跑
-      - '!scripts/build/curl.sh'
-      - '!scripts/build/openssh.sh'
-      - '!scripts/build/socat.sh'
-      - '!scripts/build/drill.sh'
-      - '!scripts/build/python3.sh'
-      - '!scripts/build/python3-sweep.sh'
-      # python3 / uv 自解压壳线由 build-python3.yml / build-uv.yml 负责，别在这里白跑
-      - '!scripts/build/dyn-common.sh'
-      - '!scripts/build/py3dyn-stub.c'
-      - '!scripts/build/uv.sh'
       - '.github/workflows/build-source.yml'
   schedule:
     - cron: '37 3 * * *'          # 每日 UTC 03:37 跟一次（上游有新提交就重建）
@@ -30,7 +20,7 @@ permissions:
   contents: write
 
 concurrency:
-  # 与 sync / build-curl 共用同一组：所有会提交的流水线串行
+  # 与 sync 共用同一组：所有会提交的流水线串行
   group: repo-writer
   cancel-in-progress: false
 
@@ -71,7 +61,7 @@ jobs:
           version: 0.13.0
 
       - name: GNU musl 交叉工具链（arm64：bash/gawk/envsubst/patch/busybox 的"完整 GNU"构建）
-        # Bootlin 预编译链（GCC 12 + musl，完整 GNU 工具链）；musl.cc 为备用来源。
+        # Bootlin 预编译链（GCC 12 + musl，完整 GNU 工具链）；musl.cc 为备用来源。（busybox 已下架，本步骤保留供 bash/gawk 等用）
         # 安装后统一前缀 aarch64-linux-*（两个来源命名不同）并加入 PATH；
         # 构建脚本通过 gnu_arm64_cc（_common.sh）或 /opt 兜底搜索使用。
         if: matrix.arch == 'arm64'

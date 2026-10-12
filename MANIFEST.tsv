@@ -1,10 +1,8 @@
 tool	repo	version	description
 bash	gnu/bash	5.3	Bash 5.3 全静态（readline 内建）
-busybox	busybox/busybox	1.38.0	瑞士军刀（自编译，上游只发源码，全静态单文件）
 chronic	otaku-say/ish-toolbox	1.3	命令成功则静默、失败才回放输出（对齐 moreutils：-v 分段标签 / -e stderr 触发=2 / 流分离；含 TMPDIR/EINTR/SIGPIPE 加固）
 coreutils	gnu/coreutils	9.12	GNU 核心工具集官方多路复用单文件（100+ 命令；argv[0]/--coreutils-prog 分发；自编译静态）
 csvquote	dbro/csvquote	0.1.5	CSV 逗号/换行保护（配合 awk/cut 双通管道）
-curl	curl/curl + libressl/libressl	8.22.0	静态 curl（LibreSSL 后端，内嵌 CA；原生无 TLS1.3 问题，自编译）
 diff	gnu/diffutils	3.12	GNU diff（自编译静态）
 diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编译）
 entr	eradman/entr	5.9	文件变化时执行命令（视 inode）
@@ -21,27 +19,16 @@ hxselect	w3.org html-xml-utils	8.8	按 CSS 选择器提取 HTML/XML 元素（替
 jaq	01mf02/jaq	3.1.1	jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×）
 jo	jpmens/jo	1.9	从命令行参数生成 JSON（自编译静态；tag 无 v 前缀）
 lowdown	kristapsdz/lowdown	3.2.1	Markdown → HTML/终端/roff（bmake 构建）
-openssl	libressl/libressl	4.3.3	openssl 命令行（LibreSSL 自建：s_client/证书/摘要全套）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
-python3	python/cpython + libressl/libressl + sqlite/sqlite	3.12.15	动态 musl CPython 自解压壳单文件（LibreSSL 内嵌 CA / sqlite3 / ctypes / lzma / bz2 / uuid / multiprocessing / 内嵌 tzdata；与 uv 兼容；约 5.3MB 起）
 qjs	quickjs-ng/quickjs	v0.17.0	QuickJS JavaScript 引擎（qjs 命令行）
 rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
-scp	openssh/openssh-portable	10.5p1	SSH 通道文件拷贝（自编译；现代 scp 走 SFTP 协议）
 sd	chmln/sd	v1.1.0	正则替换
 sed	gnu/sed	4.10	GNU sed（自编译静态）
-sftp	openssh/openssh-portable	10.5p1	交互式 SFTP 文件传输（自编译）
-socat	socat（自编译）	1.8.1.3	双向数据中继（TCP/UNIX/TLS/管道/PTY；全静态 LibreSSL 后端）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
-sqlite3	sqlite/sqlite	default	SQLite 命令行（官方只对 x64 发预编译，amalgamation 自编译）
-ssh	openssh/openssh-portable	10.5p1	SSH 客户端（全静态；LibreSSL 后端，自编译）
-ssh-add	openssh/openssh-portable	10.5p1	向 ssh-agent 添加密钥（自编译）
-ssh-agent	openssh/openssh-portable	10.5p1	SSH 密钥代理（免重复输入口令，自编译）
-ssh-keygen	openssh/openssh-portable	10.5p1	SSH 密钥生成/管理（自编译）
-ssh-keyscan	openssh/openssh-portable	10.5p1	批量采集 SSH 主机公钥（自编译）
 strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机）
 su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
 tar	gnu/tar	1.35	GNU tar（自编译静态）
@@ -49,7 +36,6 @@ tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
 tree	Old-Man-Programmer/tree	default	目录树展示（自编译，上游无任何二进制）
 unzip	info-zip/infozip	6.0	Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z）
-uv	astral-sh/uv	0.12.24	官方 uv（musl 静态）自解压壳单文件（uv venv / pip / tool run 全功能；与 python3 配对；免解压税）
 xargs	gnu/findutils	4.11.0	GNU xargs（-P/-I/--delimiter 完整版；自编译静态）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
 xz	tukaani-project/xz	5.8.4	Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态）
