@@ -35,7 +35,7 @@
 | `head-tail` | 长日志折叠：头 30 + 尾 30 行（60 行内原样；省 Context Token） |  | 1.0 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `html2text` | HTML → 纯文本（C++；zig 工具链自编译） | v2.3.0 | 2.3.0 | 0.4 MB | 0.7 MB | ✅ 最新 |
 | `hxselect` | 按 CSS 选择器提取 HTML/XML 元素（替代 cascadia） |  | 8.8 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
-| `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.1 | 3.1.1 | 0.9 MB | 0.9 MB | ✅ 最新 |
+| `jaq` | jq 的快速 Rust 实现（自编译静态；v3：模块系统 + 大整数无损，速度 2-6×） | v3.1.2 | 3.1.1 | 0.9 MB | 0.9 MB | ⬆ 待同步 |
 | `jo` | 从命令行参数生成 JSON（自编译静态；tag 无 v 前缀） | 1.9 | 1.9 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `lowdown` | Markdown → HTML/终端/roff（bmake 构建） | VERSION_3_2_1 | 3.2.1 | 0.1 MB | 0.1 MB | ✅ 最新 |
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
