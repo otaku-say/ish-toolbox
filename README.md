@@ -41,7 +41,7 @@
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pstree` | 进程树（ncurses 静态链，只交付 pstree） |  | 23.7 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pv` | 管道流量监视器（进度/速率/ETA） | v1.7.24 | 1.7.24 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.17.0 | v0.17.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
+| `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.18.0 | v0.18.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
 | `rage` | 现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产） | v0.12.1 | v0.12.1 | 1.2 MB | 1.4 MB | ✅ 最新 |
 | `rage-keygen` | rage 密钥生成（age-format identity/keypair） | v0.12.1 | v0.12.1 | 0.9 MB | 1.0 MB | ✅ 最新 |
 | `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | 1.8 MB | ✅ 最新 |
@@ -55,7 +55,7 @@
 | `tmux` | 终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁） | 3.8 | 3.7c | 0.5 MB | 0.5 MB | ⬆ 待同步 |
 | `tree` | 目录树展示（自编译，上游无任何二进制） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `unzip` | Info-ZIP unzip（自编译静态；30 项安全补丁；支持 -P 加密包 / -t / -Z） |  | 6.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.0 MB | ✅ 源码构建 |
+| `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
 | `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.1 | v4.54.1 | 4.2 MB | 4.9 MB | ✅ 最新 |
