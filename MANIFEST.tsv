@@ -8,7 +8,7 @@ diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编
 entr	eradman/entr	5.9	文件变化时执行命令（视 inode）
 envsubst	gnu/gettext-runtime	1.0	环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
-fd	sharkdp/fd	v10.5.0	按模式找文件
+fd	sharkdp/fd	v10.5.1	按模式找文件
 find	gnu/findutils	4.11.0	GNU find（-printf/-regex 等完整特性；自编译静态）
 fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
