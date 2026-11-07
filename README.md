@@ -27,7 +27,7 @@
 | `entr` | 文件变化时执行命令（视 inode） |  | 5.9 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
 | `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.2 MB | 0.2 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
-| `fd` | 按模式找文件 | v10.5.1 | v10.5.1 | 1.3 MB | 1.4 MB | ✅ 最新 |
+| `fd` | 按模式找文件 | v10.5.2 | v10.5.2 | 1.3 MB | 1.4 MB | ✅ 最新 |
 | `find` | GNU find（-printf/-regex 等完整特性；自编译静态） |  | 4.11.0 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `fzy` | 模糊查找器（-e 非交互模式对 Agent 友好） | v1.1 | 1.1 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `gawk` | GNU Awk 5.4.1 全静态（含 --csv 模式） |  | 5.4.1 | 0.3 MB | 0.3 MB | ✅ 源码构建 |
@@ -58,11 +58,11 @@
 | `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.2 | v4.54.2 | 4.6 MB | 4.9 MB | ✅ 最新 |
+| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.2 | v4.54.2 | 4.6 MB | 5.4 MB | ✅ 最新 |
 | `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 43 个工具 · arm64 合计 17.3 MB · amd64 合计 18.7 MB
+共 43 个工具 · arm64 合计 17.3 MB · amd64 合计 19.2 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
