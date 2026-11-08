@@ -27,7 +27,6 @@
 | `entr` | 文件变化时执行命令（视 inode） |  | 5.9 | 0.0 MB | 0.1 MB | ✅ 源码构建 |
 | `envsubst` | 环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static） |  | 1.0 | 0.2 MB | 0.2 MB | ✅ 源码构建 |
 | `faketty` | 把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁） | 1.0.20 | 1.0.20 | 0.2 MB | 0.2 MB | ✅ 最新 |
-| `fd` | 按模式找文件 | v10.5.2 | v10.5.2 | 1.3 MB | 1.4 MB | ✅ 最新 |
 | `find` | GNU find（-printf/-regex 等完整特性；自编译静态） |  | 4.11.0 | 0.2 MB | 0.1 MB | ✅ 源码构建 |
 | `fzy` | 模糊查找器（-e 非交互模式对 Agent 友好） | v1.1 | 1.1 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `gawk` | GNU Awk 5.4.1 全静态（含 --csv 模式） |  | 5.4.1 | 0.3 MB | 0.3 MB | ✅ 源码构建 |
@@ -41,15 +40,10 @@
 | `patch` | 打补丁（自编译，上游无 arm64 musl 产物） |  | default | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pstree` | 进程树（ncurses 静态链，只交付 pstree） |  | 23.7 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `pv` | 管道流量监视器（进度/速率/ETA） | v1.7.24 | 1.7.24 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `qjs` | QuickJS JavaScript 引擎（qjs 命令行） | v0.18.0 | v0.18.0 | 1.0 MB | 1.0 MB | ✅ 最新 |
 | `rage` | 现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产） | v0.12.1 | v0.12.1 | 1.2 MB | 1.4 MB | ✅ 最新 |
-| `rage-keygen` | rage 密钥生成（age-format identity/keypair） | v0.12.1 | v0.12.1 | 0.9 MB | 1.0 MB | ✅ 最新 |
-| `rg` | 高速递归搜索 | 15.2.0 | 15.2.0 | 1.5 MB | 1.8 MB | ✅ 最新 |
-| `sd` | 正则替换 | v1.1.0 | v1.1.0 | 0.7 MB | 0.8 MB | ✅ 最新 |
 | `sed` | GNU sed（自编译静态） |  | 4.10 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `sponge` | 管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态） |  | 0.70 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
 | `strip-ansi` | 过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机） |  | 1.0 | 0.0 MB | 0.0 MB | ✅ 源码构建 |
-| `su-exec` | 以指定用户身份执行命令（容器/脚本里的权限降级） | v0.3 | v0.3 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `tar` | GNU tar（自编译静态） |  | 1.35 | 0.4 MB | 0.3 MB | ✅ 源码构建 |
 | `tini` | 迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁） | v0.19.0 | v0.19.0 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `tmux` | 终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁） | 3.8 | 3.7c | 0.5 MB | 0.5 MB | ⬆ 待同步 |
@@ -58,11 +52,10 @@
 | `xargs` | GNU xargs（-P/-I/--delimiter 完整版；自编译静态） |  | 4.11.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `xxhsum` | xxHash 校验和 CLI（自编译静态） | v0.8.4 | 0.8.4 | 0.0 MB | 0.0 MB | ✅ 最新 |
 | `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
-| `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.2 | v4.54.2 | 4.6 MB | 5.4 MB | ✅ 最新 |
 | `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
 | `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
 
-共 43 个工具 · arm64 合计 17.3 MB · amd64 合计 19.2 MB
+共 36 个工具 · arm64 合计 17.3 MB · amd64 合计 19.2 MB
 <!-- TABLE:END -->
 
 ## 每个工具自带使用说明（给 Agent 看）
