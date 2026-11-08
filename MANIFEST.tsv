@@ -21,10 +21,13 @@ lowdown	kristapsdz/lowdown	3.2.1	Markdown → HTML/终端/roff（bmake 构建）
 patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm64 musl 产物）
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
-rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
+qjs	quickjs-ng/quickjs	v0.18.0	QuickJS JavaScript 引擎（qjs 命令行）
+rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）
+rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
 sed	gnu/sed	4.10	GNU sed（自编译静态）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
 strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机）
+su-exec	ncopa/su-exec	v0.3	以指定用户身份执行命令（容器/脚本里的权限降级）
 tar	gnu/tar	1.35	GNU tar（自编译静态）
 tini	krallin/tini	v0.19.0	迷你 init：转发信号 + subreaper 收割僵尸进程（守候/后台进程场景；含 iSH 信号修复补丁）
 tmux	tmux/tmux	3.7c	终端复用器（全静态；含 iSH SCM_RIGHTS 兜底补丁）
