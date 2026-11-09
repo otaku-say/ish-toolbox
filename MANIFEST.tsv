@@ -8,6 +8,7 @@ diffstat	invisible-island.net/diffstat	1.69	diff 统计（Dickey 原版，自编
 entr	eradman/entr	5.9	文件变化时执行命令（视 inode）
 envsubst	gnu/gettext-runtime	1.0	环境变量替换（gettext 1.0 首选/0.26 备选；--disable-libasprintf + -all-static）
 faketty	dtolnay/faketty	1.0.20	把命令挂进伪终端（PTY）：静态进程也能行缓冲/彩显（替代 stdbuf；输出同终端语义含 \r\n；含 iSH 退出挂死修复补丁）
+fd	sharkdp/fd	v10.5.2	按模式找文件
 find	gnu/findutils	4.11.0	GNU find（-printf/-regex 等完整特性；自编译静态）
 fzy	jhawthorn/fzy	1.1	模糊查找器（-e 非交互模式对 Agent 友好）
 gawk	gnu/gawk	5.4.1	GNU Awk 5.4.1 全静态（含 --csv 模式）
@@ -22,8 +23,10 @@ patch	gnu-mirror-unofficial/patch	default	打补丁（自编译，上游无 arm6
 pstree	psmisc	23.7	进程树（ncurses 静态链，只交付 pstree）
 pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
 qjs	quickjs-ng/quickjs	v0.18.0	QuickJS JavaScript 引擎（qjs 命令行）
+rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）
 rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
+sd	chmln/sd	v1.1.0	正则替换
 sed	gnu/sed	4.10	GNU sed（自编译静态）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
 strip-ansi	otaku-say/ish-toolbox	1.0	过滤 ANSI 转义序列（CSI/OSC/DCS/字符集；UTF-8 安全字节级状态机）
@@ -36,5 +39,6 @@ unzip	info-zip/infozip	6.0	Info-ZIP unzip（自编译静态；30 项安全补丁
 xargs	gnu/findutils	4.11.0	GNU xargs（-P/-I/--delimiter 完整版；自编译静态）
 xxhsum	Cyan4973/xxHash	0.8.4	xxHash 校验和 CLI（自编译静态）
 xz	tukaani-project/xz	5.8.4	Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态）
+yq	mikefarah/yq	v4.54.3	YAML/JSON 处理（yq-go；自动跟随上游最新版）
 zip	info-zip/infozip	3.0	Info-ZIP zip（自编译静态）
 zstd	facebook/zstd	1.5.7	zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程）
