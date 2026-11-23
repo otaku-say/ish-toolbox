@@ -25,7 +25,7 @@ pv	a-j-wood/pv	1.7.24	管道流量监视器（进度/速率/ETA）
 qjs	quickjs-ng/quickjs	v0.18.0	QuickJS JavaScript 引擎（qjs 命令行）
 rage	str4d/rage	v0.12.1	现代文件加密（age 格式兼容；Rust 实现、官发 musl 静态资产）
 rage-keygen	str4d/rage	v0.12.1	rage 密钥生成（age-format identity/keypair）
-rg	BurntSushi/ripgrep	15.2.0	高速递归搜索
+rg	BurntSushi/ripgrep	16.0.0	高速递归搜索
 sd	chmln/sd	v1.1.0	正则替换
 sed	gnu/sed	4.10	GNU sed（自编译静态）
 sponge	moreutils（自编译）	0.70	管道落盘：先吞完 stdin 再写文件（避免读-写同文件竞态）
