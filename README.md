@@ -60,7 +60,7 @@
 | `xz` | Tukaani XZ Utils（xz；unxz/xzcat/lzma 软链名可用；自编译静态） | v5.8.4 | 5.8.4 | 0.1 MB | 0.1 MB | ✅ 最新 |
 | `yq` | YAML/JSON 处理（yq-go；自动跟随上游最新版） | v4.54.3 | v4.54.3 | 4.6 MB | 5.4 MB | ✅ 最新 |
 | `zip` | Info-ZIP zip（自编译静态） |  | 3.0 | 0.1 MB | 0.1 MB | ✅ 源码构建 |
-| `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.5.7 | 1.5.7 | 0.3 MB | 0.2 MB | ✅ 最新 |
+| `zstd` | zstd 压缩/解压 CLI（自编译静态，支持 -T 多线程） | v1.6.0 | 1.5.7 | 0.3 MB | 0.2 MB | ⬆ 待同步 |
 
 共 43 个工具 · arm64 合计 17.3 MB · amd64 合计 19.2 MB
 <!-- TABLE:END -->
